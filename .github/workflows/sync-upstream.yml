@@ -1,0 +1,264 @@
+name: Upstream sync
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+env:
+  STAGING_BRANCH: auto/upstream-rebase
+  MAIN_BRANCH: main
+  UPSTREAM_URL: https://github.com/BanjoRecomp/BanjoRecomp.git
+  UPSTREAM_BRANCH: main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.MAIN_BRANCH }}
+          fetch-depth: 0
+          submodules: false
+          persist-credentials: true
+          token: ${{ secrets.SUBMODULE_PAT }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch --no-tags upstream "$UPSTREAM_BRANCH"
+
+      - id: check
+        name: Check if rebase is needed
+        run: |
+          if git merge-base --is-ancestor "upstream/$UPSTREAM_BRANCH" HEAD; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            echo "Fork is already current with upstream — nothing to do."
+          else
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: rebase_main
+        name: Rebase main onto upstream
+        if: steps.check.outputs.needed == 'true'
+        run: |
+          if git rebase "upstream/$UPSTREAM_BRANCH"; then
+            echo "result=clean" >> "$GITHUB_OUTPUT"
+          else
+            CONFLICTS="$(git diff --name-only --diff-filter=U || true)"
+            git rebase --abort || true
+            echo "result=conflict" >> "$GITHUB_OUTPUT"
+            {
+              echo "files<<CONFLICT_EOF"
+              echo "$CONFLICTS"
+              echo "CONFLICT_EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: File main rebase conflict issue
+        if: steps.rebase_main.outputs.result == 'conflict'
+        env:
+          GH_TOKEN: ${{ secrets.SUBMODULE_PAT }}
+          CONFLICT_FILES: ${{ steps.rebase_main.outputs.files }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          LABEL_ARG=()
+          if gh label list --repo "$REPO" --search upstream-sync --json name --jq '.[].name' | grep -qx upstream-sync \
+             || gh label create upstream-sync --repo "$REPO" \
+                  --description "Automated upstream sync" --color ededed; then
+            LABEL_ARG=(--label upstream-sync)
+          fi
+
+          {
+            echo "Upstream rebase failed — conflicting paths:"
+            echo
+            echo '```'
+            echo "$CONFLICT_FILES"
+            echo '```'
+            echo
+            echo "Run: $RUN_URL"
+          } > issue-body.md
+
+          EXISTING=$(gh issue list --repo "$REPO" --state open \
+            --search "Upstream rebase blocked by conflicts in:title" \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$REPO" --body-file issue-body.md
+          else
+            gh issue create --repo "$REPO" \
+              --title "Upstream rebase blocked by conflicts" \
+              --body-file issue-body.md \
+              "${LABEL_ARG[@]}"
+          fi
+
+          exit 1
+
+      - id: submodules
+        name: Rebase Stereo3D submodule forks
+        if: steps.rebase_main.outputs.result == 'clean'
+        env:
+          SUBMODULE_PAT: ${{ secrets.SUBMODULE_PAT }}
+          GH_TOKEN: ${{ secrets.SUBMODULE_PAT }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SUB_LIST_FILE: /tmp/submodule_staging.txt
+        run: |
+          set -u
+
+          SUBS=(
+            "lib/RecompFrontend|oneup03/RecompFrontend3D|https://github.com/N64Recomp/RecompFrontend.git|Stereo3D"
+            "lib/rt64|oneup03/rt64-3D|https://github.com/rt64/rt64.git|Stereo3D"
+          )
+
+          ANY_CONFLICT=0
+          : > "$SUB_LIST_FILE"
+
+          ensure_label() {
+            local repo=$1
+            if gh label list --repo "$repo" --search upstream-sync --json name --jq '.[].name' | grep -qx upstream-sync \
+               || gh label create upstream-sync --repo "$repo" \
+                    --description "Automated upstream sync" --color ededed; then
+              echo "--label upstream-sync"
+            fi
+          }
+
+          for entry in "${SUBS[@]}"; do
+            IFS='|' read -r SUB_PATH FORK_SLUG UP_URL STEREO_BRANCH <<< "$entry"
+
+            OLD_SHA=$(git ls-tree "origin/$MAIN_BRANCH" -- "$SUB_PATH" | awk '{print $3}')
+            NEW_SHA=$(git ls-tree HEAD -- "$SUB_PATH" | awk '{print $3}')
+
+            if [ -z "$NEW_SHA" ]; then
+              echo "submodule $SUB_PATH missing from rebased tree — skipping"
+              continue
+            fi
+
+            if [ "$OLD_SHA" = "$NEW_SHA" ]; then
+              echo "submodule $SUB_PATH unchanged ($OLD_SHA)"
+              continue
+            fi
+
+            echo "submodule $SUB_PATH changed: ${OLD_SHA:0:10} -> ${NEW_SHA:0:10}"
+
+            FORK_URL="https://x-access-token:${SUBMODULE_PAT}@github.com/${FORK_SLUG}.git"
+            WORK=$(mktemp -d)
+            (
+              set -e
+              cd "$WORK"
+              git clone --quiet --no-tags "$FORK_URL" repo
+              cd repo
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git remote add upstream "$UP_URL"
+              git fetch --no-tags upstream "$NEW_SHA"
+              git checkout "$STEREO_BRANCH"
+            ) || {
+              echo "::error::Failed to prepare $SUB_PATH for rebase"
+              ANY_CONFLICT=1
+              rm -rf "$WORK"
+              continue
+            }
+
+            cd "$WORK/repo"
+            if git rebase "$NEW_SHA"; then
+              git push --force origin "HEAD:refs/heads/$STAGING_BRANCH"
+              STAGED_SHA=$(git rev-parse HEAD)
+              echo "$SUB_PATH $STAGED_SHA" >> "$SUB_LIST_FILE"
+              echo "submodule $SUB_PATH staged at ${STAGED_SHA:0:10}"
+            else
+              CONFLICTS=$(git diff --name-only --diff-filter=U || true)
+              git rebase --abort || true
+              ANY_CONFLICT=1
+
+              LABEL_ARG=()
+              IFS=' ' read -r -a LABEL_ARG <<< "$(ensure_label "$REPO")"
+
+              {
+                echo "\`$SUB_PATH\`'s Stereo3D rebase failed onto the upstream SHA upstream BanjoRecomp now requires:"
+                echo
+                echo "- Upstream SHA: \`$NEW_SHA\`"
+                echo "- Upstream repo: \`$UP_URL\`"
+                echo "- Our fork: \`$FORK_SLUG\` branch \`$STEREO_BRANCH\`"
+                echo
+                echo "Conflicting paths:"
+                echo
+                echo '```'
+                echo "$CONFLICTS"
+                echo '```'
+                echo
+                echo "Run: $RUN_URL"
+              } > /tmp/issue-body.md
+
+              ISSUE_TITLE="Stereo3D rebase blocked by conflicts in $SUB_PATH"
+              EXISTING=$(gh issue list --repo "$REPO" --state open \
+                --search "${ISSUE_TITLE} in:title" \
+                --json number --jq '.[0].number // empty')
+
+              if [ -n "$EXISTING" ]; then
+                gh issue comment "$EXISTING" --repo "$REPO" --body-file /tmp/issue-body.md
+              else
+                gh issue create --repo "$REPO" \
+                  --title "$ISSUE_TITLE" \
+                  --body-file /tmp/issue-body.md \
+                  "${LABEL_ARG[@]}"
+              fi
+            fi
+
+            cd "$GITHUB_WORKSPACE"
+            rm -rf "$WORK"
+          done
+
+          if [ "$ANY_CONFLICT" = "1" ]; then
+            echo "result=conflict" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=clean" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Abort on submodule conflict
+        if: steps.submodules.outputs.result == 'conflict'
+        run: |
+          echo "::error::One or more Stereo3D submodule rebases failed. Main staging branch was NOT pushed."
+          exit 1
+
+      - name: Re-point submodules to staged SHAs
+        if: steps.submodules.outputs.result == 'clean'
+        env:
+          SUB_LIST_FILE: /tmp/submodule_staging.txt
+        run: |
+          if [ ! -s "$SUB_LIST_FILE" ]; then
+            echo "No submodules needed updating."
+            exit 0
+          fi
+          while IFS=' ' read -r SUB_PATH STAGED_SHA; do
+            [ -z "$SUB_PATH" ] && continue
+            git update-index --cacheinfo "160000,$STAGED_SHA,$SUB_PATH"
+          done < "$SUB_LIST_FILE"
+          git commit -m "Sync submodule pointers to Stereo3D staging"
+
+      - name: Push main staging branch
+        if: steps.submodules.outputs.result == 'clean'
+        run: git push --force origin "HEAD:refs/heads/$STAGING_BRANCH"
+
+      - name: Dispatch release.yml on staging branch
+        if: steps.submodules.outputs.result == 'clean'
+        env:
+          # PAT (not GITHUB_TOKEN): a run dispatched via GITHUB_TOKEN cannot
+          # subsequently trigger workflow_run listeners (promote-upstream.yml).
+          GH_TOKEN: ${{ secrets.SUBMODULE_PAT }}
+        run: gh workflow run release.yml --ref "$STAGING_BRANCH" --repo "$GITHUB_REPOSITORY"

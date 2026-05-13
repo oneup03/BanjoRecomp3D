@@ -69,9 +69,16 @@ RECOMP_PATCH void viewport_setRenderPerspectiveMatrix(Gfx **gfx, Mtx **mtx, f32 
     gSPMatrix((*gfx)++, OS_PHYSICAL_TO_K0((*mtx)++), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
     // @recomp Create an isolated view matrix for the viewport translation and provide it as the view matrix to counteract the camera translation.
+    // The dialog bubble shares the gameplay camera (its position comes from
+    // viewport_transformCoordinate, which is world-space relative to the live
+    // camera). Treat it like GAMEPLAY here so the bubble draws in the right
+    // place on the file-select screen; for in-game dialog the surrounding HUD
+    // block has already zeroed sViewportPosition so the view ends up identity-
+    // equivalent anyway.
     MtxF* view = (MtxF*)*mtx;
     (*mtx)++;
-    if (cur_perspective_projection_transform_id == PROJECTION_GAMEPLAY_TRANSFORM_ID) {
+    if (cur_perspective_projection_transform_id == PROJECTION_GAMEPLAY_TRANSFORM_ID ||
+        cur_perspective_projection_transform_id == PROJECTION_DIALOG_BUBBLE_TRANSFORM_ID) {
         guTranslateF(view->m, sViewportPosition[0], sViewportPosition[1], sViewportPosition[2]);
     }
     else {

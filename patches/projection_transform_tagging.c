@@ -343,6 +343,14 @@ RECOMP_PATCH void func_803163A8(GcZoombox *this, Gfx **gfx, Mtx **mtx) {
         gEXSetViewportAlign((*gfx)++, G_EX_ORIGIN_LEFT, 0, 0);
     }
 
+    // @recomp Tag the bubble's perspective projection with its own ID so RT64
+    // can apply the HUD-depth shift to it uniformly across both in-game and
+    // file-select callers. Save and restore around the perspective push AND
+    // the model draw so any GPU commands emitted in between are tagged with
+    // the bubble ID, matching the chOverlayPressStart pattern.
+    s32 prev_perspective_projection_transform = cur_perspective_projection_transform_id;
+    cur_perspective_projection_transform_id = PROJECTION_DIALOG_BUBBLE_TRANSFORM_ID;
+
     viewport_setRenderViewportAndPerspectiveMatrix(gfx, mtx);
 
     sp34 = viewport_transformCoordinate(this->unk170, this->unk172, sp50, sp5C);
@@ -366,6 +374,9 @@ RECOMP_PATCH void func_803163A8(GcZoombox *this, Gfx **gfx, Mtx **mtx) {
 
     // @recomp Reset the model transform ID.
     cur_drawn_model_transform_id = prev_transform_id;
+
+    // @recomp Restore the previous perspective projection transform ID.
+    cur_perspective_projection_transform_id = prev_perspective_projection_transform;
 
     // @recomp Clear the matrix group.
     if (left_aligned_zoombox(this)) {

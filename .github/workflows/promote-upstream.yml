@@ -1,0 +1,114 @@
+name: Upstream promote
+
+on:
+  workflow_run:
+    workflows: [ "release" ]
+    types: [ completed ]
+    branches: [ "auto/upstream-rebase" ]
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+
+env:
+  STAGING_BRANCH: auto/upstream-rebase
+  MAIN_BRANCH: main
+
+jobs:
+  promote:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          submodules: false
+          persist-credentials: true
+          token: ${{ secrets.SUBMODULE_PAT }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Promote main
+        run: git push --force origin "HEAD:refs/heads/$MAIN_BRANCH"
+
+      - name: Promote Stereo3D submodule staging branches
+        env:
+          GH_TOKEN: ${{ secrets.SUBMODULE_PAT }}
+        run: |
+          set -u
+
+          SUBS=(
+            "oneup03/RecompFrontend3D|Stereo3D"
+            "oneup03/rt64-3D|Stereo3D"
+          )
+
+          for entry in "${SUBS[@]}"; do
+            IFS='|' read -r FORK_SLUG STEREO_BRANCH <<< "$entry"
+
+            STAGED_SHA=$(gh api "repos/$FORK_SLUG/git/refs/heads/$STAGING_BRANCH" --jq '.object.sha' 2>/dev/null || true)
+            if [ -z "$STAGED_SHA" ]; then
+              echo "no $STAGING_BRANCH on $FORK_SLUG — nothing to promote"
+              continue
+            fi
+
+            echo "promoting $FORK_SLUG $STAGING_BRANCH ($STAGED_SHA) -> $STEREO_BRANCH"
+            gh api -X PATCH "repos/$FORK_SLUG/git/refs/heads/$STEREO_BRANCH" \
+              -f sha="$STAGED_SHA" -F force=true
+
+            echo "deleting $FORK_SLUG $STAGING_BRANCH"
+            gh api -X DELETE "repos/$FORK_SLUG/git/refs/heads/$STAGING_BRANCH" || true
+          done
+
+      - name: Delete BanjoRecomp3D staging branch
+        run: git push origin --delete "$STAGING_BRANCH" || true
+
+      - name: Re-dispatch release.yml on main
+        env:
+          GH_TOKEN: ${{ secrets.SUBMODULE_PAT }}
+        run: gh workflow run release.yml --ref "$MAIN_BRANCH" --repo "$GITHUB_REPOSITORY"
+
+  notify-failure:
+    if: github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: File build-failure issue
+        env:
+          GH_TOKEN: ${{ secrets.SUBMODULE_PAT }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          LABEL_ARG=()
+          if gh label list --repo "$REPO" --search upstream-sync --json name --jq '.[].name' | grep -qx upstream-sync \
+             || gh label create upstream-sync --repo "$REPO" \
+                  --description "Automated upstream sync" --color ededed; then
+            LABEL_ARG=(--label upstream-sync)
+          fi
+
+          {
+            echo "Build for the rebased staging branch finished with conclusion: \`$CONCLUSION\`."
+            echo
+            echo "- SHA: \`$HEAD_SHA\`"
+            echo "- Run: $RUN_URL"
+            echo
+            echo "Staging branches left in place for inspection."
+          } > issue-body.md
+
+          EXISTING=$(gh issue list --repo "$REPO" --state open \
+            --search "Upstream rebase build failed in:title" \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$REPO" --body-file issue-body.md
+          else
+            gh issue create --repo "$REPO" \
+              --title "Upstream rebase build failed" \
+              --body-file issue-body.md \
+              "${LABEL_ARG[@]}"
+          fi

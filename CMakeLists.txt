@@ -49,7 +49,49 @@ if (RECOMP_FLATPAK)
     add_compile_definitions(RECOMP_FLATPAK)
 endif()
 
+# LeiaSR SDK — Windows-only, used by rt64's DX12 path for stereo weaving.
+# Prebuilt static libs ship under lib/LeiaSR64/lib. The SR Platform service
+# must be installed on the user's machine at runtime for any actual weaving
+# to happen; the libs themselves are safe to link unconditionally because no
+# code references them until StereoMode::LeiaSR is selected.
+set(LEIASR_SUPPORTED FALSE)
+if (WIN32)
+    set(LEIASR_SDKROOT "${CMAKE_SOURCE_DIR}/lib/LeiaSR64" CACHE PATH "Path to LeiaSR SDK root")
+    if (EXISTS "${LEIASR_SDKROOT}/lib/cmake/simulatedreality/simulatedrealityConfig.cmake")
+        list(APPEND CMAKE_PREFIX_PATH "${LEIASR_SDKROOT}/lib/cmake")
+        find_package(simulatedreality CONFIG QUIET)
+        find_package(srDirectX CONFIG QUIET)
+        # The SDK ships an unnamespaced `simulatedreality` INTERFACE target
+        # but its srDirectX targets-file declares a link dependency on the
+        # namespaced `simulatedreality::simulatedreality`. Bridge the gap
+        # with an alias so linking resolves.
+        if (TARGET simulatedreality AND NOT TARGET simulatedreality::simulatedreality)
+            add_library(simulatedreality::simulatedreality ALIAS simulatedreality)
+        endif()
+        if (TARGET simulatedreality AND TARGET srDirectX::srDirectX)
+            set(LEIASR_SUPPORTED TRUE)
+            message(STATUS "LeiaSR SDK found at ${LEIASR_SDKROOT}; DX12 weaving will be available.")
+        else()
+            message(STATUS "LeiaSR SDK present at ${LEIASR_SDKROOT} but find_package failed; weaving disabled.")
+        endif()
+    else()
+        message(STATUS "LeiaSR SDK not found at ${LEIASR_SDKROOT}; weaving disabled.")
+    endif()
+endif()
+
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rt64 ${CMAKE_BINARY_DIR}/rt64)
+
+# Link the LeiaSR libs into rt64 (where the DX12 weaver will be wired up in
+# Phase 3). Adding LEIASR_SUPPORTED as a compile definition lets the rt64
+# source files conditionally include the weaver headers without breaking
+# non-Windows or sdk-less builds.
+# Note: rt64's own CMakeLists uses the plain target_link_libraries signature,
+# so we have to as well — CMake forbids mixing keyword/plain forms on the
+# same target.
+if (LEIASR_SUPPORTED)
+    target_compile_definitions(rt64 PUBLIC LEIASR_SUPPORTED=1)
+    target_link_libraries(rt64 srDirectX::srDirectX simulatedreality::simulatedreality)
+endif()
 
 set(BUILD_SHARED_LIBS OFF)
 
@@ -198,6 +240,27 @@ endif()
 if (MSVC)
     # Disable identical code folding, since this breaks mod function patching as multiple functions can get merged into one.
     target_link_options(BanjoRecompiled PRIVATE /OPT:NOICF)
+
+    # Delay-load every DLL the LeiaSR SDK pulls in so the exe can start on
+    # machines without the SR Platform installed. Without delay-load, Windows
+    # resolves the imports at exe-load time and refuses to launch with "entry
+    # point not found" referencing CreateDX12Weaver. With delay-load, the DLLs
+    # are only resolved on first call — and rt64_leiasr_weaver.cpp pre-checks
+    # them with LoadLibraryW before any actual SDK call, so we never trigger
+    # the delay-load helper's SEH path on missing-DLL systems.
+    #
+    # The list mirrors what dumpbin /DEPENDENTS reports as statically imported
+    # from the LeiaSR linkage. SimulatedRealityCore + SimulatedRealityDirectX
+    # are the SDK's own DLLs; opencv_world343 is the OpenCV runtime the SR
+    # Platform ships with and that SimulatedRealityCore depends on.
+    if (LEIASR_SUPPORTED)
+        target_link_options(BanjoRecompiled PRIVATE
+            "/DELAYLOAD:SimulatedRealityCore.dll"
+            "/DELAYLOAD:SimulatedRealityDirectX.dll"
+            "/DELAYLOAD:opencv_world343.dll"
+        )
+        target_link_libraries(BanjoRecompiled PRIVATE Delayimp.lib)
+    endif()
 elseif (APPLE)
     # Use a wrapper around ld64 that respects segprot's `max_prot` value in order
     # to make our executable memory writable (required for mod function patching)
