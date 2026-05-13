@@ -9,5 +9,9 @@ DECLARE_FUNC(s32, recomp_get_target_framerate, s32);
 DECLARE_FUNC(s32, recomp_high_precision_fb_enabled);
 DECLARE_FUNC(float, recomp_get_resolution_scale);
 DECLARE_FUNC(float, recomp_get_cutscene_aspect_ratio);
+// Pushes a per-frame bool from BK to host. Non-zero means the current scene
+// (FMV, file select, first-person view, etc.) should use reduced stereo
+// convergence when the user has Auto Convergence enabled.
+DECLARE_FUNC(void, recomp_stereo_set_low_convergence_scene, s32 active);
 
 #endif
