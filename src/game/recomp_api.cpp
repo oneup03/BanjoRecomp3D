@@ -121,6 +121,15 @@ extern "C" void recomp_get_cutscene_aspect_ratio(uint8_t *rdram, recomp_context 
     }
 }
 
+// BK-side stereo_runtime_tick pushes a single classification bool per frame:
+// 1 = scene should use reduced convergence (menu / FMV / cutscene / FP camera),
+// 0 = full user-configured convergence. The host applies the scale in
+// apply_pending_stereo_config().
+extern "C" void recomp_stereo_set_low_convergence_scene(uint8_t *rdram, recomp_context *ctx) {
+    const s32 active = _arg<0, s32>(rdram, ctx);
+    recompui::renderer::set_stereo_runtime_low_convergence(active != 0);
+}
+
 extern "C" void recomp_get_bgm_volume(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, banjo::get_bgm_volume() / 100.0f);
 }

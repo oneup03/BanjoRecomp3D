@@ -28,6 +28,14 @@ namespace banjo {
 
         namespace graphics {
             inline const std::string cutscene_aspect_ratio_mode = "cutscene_aspect_ratio_mode";
+            inline const std::string stereo_mode = "stereo_mode";
+            inline const std::string stereo_separation = "stereo_separation";
+            inline const std::string stereo_convergence = "stereo_convergence";
+            inline const std::string stereo_hud_depth = "stereo_hud_depth";
+            inline const std::string stereo_auto_convergence = "stereo_auto_convergence";
+            inline const std::string stereo_auto_convergence_scale = "stereo_auto_convergence_scale";
+            inline const std::string stereo_ghost_contrast = "stereo_ghost_contrast";
+            inline const std::string stereo_ghost_black_floor = "stereo_ghost_black_floor";
         }
     }
 
@@ -90,6 +98,53 @@ namespace banjo {
     };
 
     CutsceneAspectRatioMode get_cutscene_aspect_ratio_mode();
+
+    enum class StereoMode {
+        Off,
+        SideBySide,
+        TopAndBottom,
+        RowInterlaced,
+        ColumnInterlaced,
+        Checkerboard,
+        Anaglyph,
+        LeiaSR,
+        OptionCount
+    };
+
+    NLOHMANN_JSON_SERIALIZE_ENUM(banjo::StereoMode, {
+        {banjo::StereoMode::Off, "Off"},
+        {banjo::StereoMode::SideBySide, "SideBySide"},
+        {banjo::StereoMode::TopAndBottom, "TopAndBottom"},
+        {banjo::StereoMode::RowInterlaced, "RowInterlaced"},
+        {banjo::StereoMode::ColumnInterlaced, "ColumnInterlaced"},
+        {banjo::StereoMode::Checkerboard, "Checkerboard"},
+        {banjo::StereoMode::Anaglyph, "Anaglyph"},
+        {banjo::StereoMode::LeiaSR, "LeiaSR"}
+    });
+
+    StereoMode get_stereo_mode();
+    // Returns the user-facing slider values. Separation is 0..50; convergence
+    // is 0.1..50 and steps in tenths, so it is returned rounded down to a whole
+    // unit here - the renderer bridge is what carries the tenths. Conversion to
+    // world-space units happens at the render layer.
+    uint32_t get_stereo_separation();
+    uint32_t get_stereo_convergence();
+    // HUD/textbox depth, 0..100. 50 = screen plane (mono). Below 50 pushes HUD
+    // behind the screen; above 50 makes it pop out.
+    uint32_t get_stereo_hud_depth();
+    // Auto-convergence: when on, the renderer scales the configured convergence
+    // down in flat / near-camera scenes (file select, FMVs, cutscenes, first
+    // person, Bottles' bonus) so they sit comfortably without the user having
+    // to drag the slider.
+    bool get_stereo_auto_convergence();
+    // 0..100, applied as a fraction (0.0..1.0) of the configured convergence
+    // when auto-convergence triggers. 25 = 25% of the slider value.
+    uint32_t get_stereo_auto_convergence_scale();
+    // Ghost (crosstalk) reduction, both applied by the stereo compose shader.
+    // Contrast is 0..100 percent with 100 = off; black floor is 0..100 percent
+    // with 0 = off. Both are exact no-ops at their defaults.
+    uint32_t get_stereo_ghost_contrast();
+    uint32_t get_stereo_ghost_black_floor();
 
     void open_quit_game_prompt();
 };

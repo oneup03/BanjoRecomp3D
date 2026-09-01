@@ -1,0 +1,43 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "detail": "Configure (if needed) then build BanjoRecompiled",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        },
+        {
+            "label": "Build (clean configure)",
+            "detail": "Wipe the CMake cache, reconfigure, then build",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build.bat",
+            "args": [
+                "clean"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        }
+    ]
+}

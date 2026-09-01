@@ -52,7 +52,31 @@ if (RECOMP_FLATPAK)
     add_compile_definitions(RECOMP_FLATPAK)
 endif()
 
+# LeiaSR SDK — Windows-only, used by rt64's DX12 path for stereo weaving.
+# Vendored through the bo3b/SR-lib submodule, whose CMakeLists locates the
+# nested per-architecture SDK tree and exposes srlib_apply_delayload() plus two
+# targets: SRLib::SDK (headers + import libs) and SRLib::SR (that, plus the
+# SR.cpp SRInterface* wrapper). rt64_leiasr_weaver.cpp drives the wrapper, so
+# we link SRLib::SR.
+#
+# The SR Platform service must be installed on the user's machine at runtime for
+# any actual weaving to happen; the import libs are safe to link unconditionally
+# because nothing references them until StereoMode::LeiaSR is selected.
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib/SR-lib ${CMAKE_BINARY_DIR}/SR-lib)
+set(LEIASR_SUPPORTED ${SRLIB_FOUND})
+
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rt64 ${CMAKE_BINARY_DIR}/rt64)
+
+# LEIASR_SUPPORTED as a compile definition lets the rt64 source files
+# conditionally include the weaver headers without breaking non-Windows builds
+# or builds where the SR-lib submodule wasn't checked out.
+# Note: rt64's own CMakeLists uses the plain target_link_libraries signature,
+# so we have to as well — CMake forbids mixing keyword/plain forms on the
+# same target.
+if (LEIASR_SUPPORTED)
+    target_compile_definitions(rt64 PUBLIC LEIASR_SUPPORTED=1)
+    target_link_libraries(rt64 SRLib::SR)
+endif()
 
 set(BUILD_SHARED_LIBS OFF)
 
@@ -203,6 +227,24 @@ endif()
 if (MSVC)
     # Disable identical code folding, since this breaks mod function patching as multiple functions can get merged into one.
     target_link_options(BanjoRecompiled PRIVATE /OPT:NOICF)
+
+    # Delay-load every DLL the LeiaSR SDK pulls in so the exe can start on
+    # machines without the SR Platform installed. Without delay-load, Windows
+    # resolves the imports at exe-load time and refuses to launch with "entry
+    # point not found" referencing CreateDX12Weaver. With delay-load, the DLLs
+    # are only resolved on first call — and SR-lib probes both the core runtime
+    # and the DirectX weaver DLL with LoadLibraryW before any actual SDK call,
+    # so we never trigger the delay-load helper's SEH path on missing-DLL
+    # systems.
+    #
+    # The DLL list itself lives in lib/SR-lib/CMakeLists.txt so it stays correct
+    # for every consumer as the SDK changes. Verify with
+    # `dumpbin /imports BanjoRecompiled.exe` — every SR/OpenCV DLL must appear
+    # ONLY under "delay load imports", not the top-level imports section, or the
+    # EXE refuses to launch on clean machines.
+    if (LEIASR_SUPPORTED)
+        srlib_apply_delayload(BanjoRecompiled)
+    endif()
 elseif (APPLE)
     # Use a wrapper around ld64 that respects segprot's `max_prot` value in order
     # to make our executable memory writable (required for mod function patching)

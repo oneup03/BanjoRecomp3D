@@ -3,7 +3,7 @@
 	url = https://github.com/N64Recomp/N64ModernRuntime
 [submodule "lib/rt64"]
 	path = lib/rt64
-	url = https://github.com/rt64/rt64
+	url = https://github.com/oneup03/rt64-3D.git
 [submodule "lib/bk-decomp"]
 	path = lib/bk-decomp
 	url = https://gitlab.com/banjo.decomp/banjo-kazooie
@@ -12,4 +12,8 @@
 	url = https://github.com/BanjoRecomp/BanjoRecompSyms
 [submodule "lib/RecompFrontend"]
 	path = lib/RecompFrontend
-	url = https://github.com/N64Recomp/RecompFrontend
+	url = https://github.com/oneup03/RecompFrontend3D.git
+[submodule "lib/SR-lib"]
+	path = lib/SR-lib
+	url = https://github.com/bo3b/SR-lib.git
+	branch = api_expansion
