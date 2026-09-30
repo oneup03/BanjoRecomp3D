@@ -59,22 +59,30 @@ SELECT opens the settings on the bottom screen.
 
 Mods from the Banjo: Recompiled community are built into the executable (the
 3DS cannot load mod code at runtime). They start switched off: turn them on
-from the Mods page of the settings, which also holds their options. Turning
-a mod on or off takes effect at the next start; options apply at once.
+from the Mods page of the settings, which also holds their options. Both
+take effect at once, and are kept in `settings.ini`.
 
 | Mod | Author | What it does |
 |---|---|---|
-| Ability Anywhere | ProxySaw | Fly or Shock Jump anywhere, no pad needed |
-| Cheats | ProxySaw | Moon jump, speed, infinite health, lives, ammo and air |
+| Ability Anywhere | ProxySaw | Fly or Shock Jump anywhere, no pad needed: ZL + A (tap A to fly, hold for a Shock Jump) |
+| Cheats | ProxySaw | Moon jump (hold ZL), speed (hold R), infinite health, lives, ammo and air |
 | Exit To Lair | ProxySaw | An Exit to Lair option in the pause menu |
 | Skip It | ProxySaw | Cutscene skips and speed-ups |
 | Toggle Trot | ProxySaw | Talon Trot toggles instead of being held |
-| Transform Anywhere | ProxySaw | Mumbo's transformations anywhere |
-| Banjo Bee | TSR Stormed | Fly as Banjo Bee: D-pad down turns it on or off, then jump (C-Down stays on Y and the C-Stick while the mod is on) |
+| Transform Anywhere | ProxySaw | Mumbo's transformations anywhere, on the D-pad |
+| Banjo Bee | TSR Stormed | Fly as Banjo Bee: D-pad down turns it on or off, then jump |
 | Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise |
 | Sir Slush Configuration | Thermopolis | Tunes Sir Slush's attacks |
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
+
+Some mods read N64 buttons Banjo's controls otherwise leave out, and while
+one of them is on the buttons change: the D-pad becomes the N64 D-pad (down
+only for Banjo Bee, all four directions for Transform Anywhere), and ZL
+becomes the N64 L button (Ability Anywhere, Cheats, and Transform Anywhere's
+"L + D-pad" mode). The C buttons stay on X, Y, ZR and the C-Stick. An Old 3DS
+has no ZL, ZR or C-Stick: there the ZL mods can't be used, and the camera
+can't turn with the C buttons while Transform Anywhere is on.
 
 In a game mode, Exit to Lair stays off and isn't listed: it returns to the
 original game's lair entrances, which the game modes rework. It stays on for

@@ -27,27 +27,57 @@ namespace {
 
 // A=A  B=B  L=Z  R=R  START=START; the C buttons on X (up), Y (down),
 // ZL (left), ZR (right), the D-pad and the C-Stick. Banjo has no use for the
-// N64 D-pad or L.
+// N64 D-pad or L, but some built-in mods do, and while one of them is on the
+// buttons give it them:
+// - the D-pad directions a mod reads become the N64 D-pad's: down for Banjo
+//   Bee (its bee flight), all four for Transform Anywhere;
+// - ZL becomes N64 L for Ability Anywhere (L + A), Cheats (hold L to moon
+//   jump) and Transform Anywhere (its "L + D-pad" mode).
+// The C buttons stay on X, Y, ZR and the C-Stick (and ZL or the D-pad where
+// those are free). An Old 3DS has no ZL, ZR or C-Stick: with Transform
+// Anywhere on, its camera can't turn with the C buttons.
 using namespace recomp3ds;
-const ButtonMap kButtons[] = {
-    { KEY_A, N64_A }, { KEY_B, N64_B }, { KEY_L, N64_Z }, { KEY_R, N64_R }, { KEY_START, N64_START },
-    { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y | KEY_DDOWN, N64_CDOWN },
-    { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
-};
-// With Banjo Bee on, D-pad down is the N64 D-pad's down, the mod's key for
-// bee flight; C-Down stays on Y and the C-Stick.
-const ButtonMap kButtonsBee[] = {
-    { KEY_A, N64_A }, { KEY_B, N64_B }, { KEY_L, N64_Z }, { KEY_R, N64_R }, { KEY_START, N64_START },
-    { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y, N64_CDOWN }, { KEY_DDOWN, N64_DDOWN },
-    { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
-};
+constexpr const char* kBanjoBee = "bk_recomp_mod_banjo_bee";
+constexpr const char* kTransformAnywhere = "ProxyMM_TransformAnywhere";
+constexpr const char* kAbilityAnywhere = "ProxyMM_AbilityAnywhere";
+constexpr const char* kCheats = "ProxyMM_Cheats";
 
-// The game's init. Mods load only as the game starts, so the buttons follow
-// the ones enabled now.
+enum DpadUse { DpadNone, DpadDown, DpadAll };
+struct Buttons {
+    ButtonMap map[16];
+    size_t count = 0;
+};
+// Every combination, built once before the game reads them.
+Buttons g_buttons[3][2];    // [DpadUse][ZL is N64 L]
+
+void build_buttons(Buttons& b, DpadUse d, bool zl_is_l) {
+    auto add = [&](uint32_t keys, uint16_t n64) { if (keys != 0) b.map[b.count++] = { keys, n64 }; };
+    add(KEY_A, N64_A); add(KEY_B, N64_B); add(KEY_L, N64_Z); add(KEY_R, N64_R); add(KEY_START, N64_START);
+    add(KEY_X | (d == DpadAll ? 0 : KEY_DUP), N64_CUP);
+    add(KEY_Y | (d == DpadNone ? KEY_DDOWN : 0), N64_CDOWN);
+    add((zl_is_l ? 0 : KEY_ZL) | (d == DpadAll ? 0 : KEY_DLEFT), N64_CLEFT);
+    add(KEY_ZR | (d == DpadAll ? 0 : KEY_DRIGHT), N64_CRIGHT);
+    if (zl_is_l) add(KEY_ZL, N64_L);
+    if (d != DpadNone) add(KEY_DDOWN, N64_DDOWN);
+    if (d == DpadAll) { add(KEY_DUP, N64_DUP); add(KEY_DLEFT, N64_DLEFT); add(KEY_DRIGHT, N64_DRIGHT); }
+}
+
+// The buttons for the mods on now: at the game's start, and whenever one is
+// switched on the Mods page (it takes effect at once).
+void set_buttons() {
+    auto on = [](const char* id) { return recomp::mods::is_mod_enabled(id); };
+    const bool transform = on(kTransformAnywhere);
+    const DpadUse d = transform ? DpadAll : on(kBanjoBee) ? DpadDown : DpadNone;
+    const bool zl_is_l = transform || on(kAbilityAnywhere) || on(kCheats);
+    const Buttons& b = g_buttons[d][zl_is_l ? 1 : 0];
+    input_set_map(b.map, b.count);
+}
 void bk_on_init_3ds(uint8_t* rdram, recomp_context* ctx) {
     banjo::bk_on_init(rdram, ctx);
-    if (recomp::mods::is_mod_enabled("bk_recomp_mod_banjo_bee")) input_set_map(kButtonsBee, sizeof(kButtonsBee) / sizeof(kButtonsBee[0]));
-    else input_set_map(kButtons, sizeof(kButtons) / sizeof(kButtons[0]));
+    set_buttons();
+}
+void mod_switched(const char*, bool) {
+    set_buttons();
 }
 
 const char* const kSavingNames[] = { "Off", "Notes", "Jinjos", "Both" };
@@ -176,6 +206,7 @@ int main(int argc, char** argv) {
     // The desktop's version (src/main/main.cpp): mods check it.
     recomp::Version::from_string("1.0.2", desc.project_version);
     desc.mods_not_in_game_modes = kModsNotInGameModes;
+    desc.on_mod_switched = mod_switched;
     desc.mods_not_in_game_modes_count = sizeof(kModsNotInGameModes) / sizeof(kModsNotInGameModes[0]);
     desc.sd_dir = "BanjoRecomp";
     desc.entry = recomp::GameEntry{
@@ -230,8 +261,11 @@ int main(int argc, char** argv) {
     desc.render.autoconv.ease_out = 0.08f;
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (rt64-3ds naudio_hle.cpp)
     desc.audio_hle_variant = recomp3ds::NaudioVariant::BanjoKazooie;   // no phase-inverted voices in this build
-    desc.button_map = kButtons;
-    desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
+    for (int d = 0; d < 3; d++) {
+        for (int l = 0; l < 2; l++) build_buttons(g_buttons[d][l], (DpadUse)d, l != 0);
+    }
+    desc.button_map = g_buttons[DpadNone][0].map;
+    desc.button_map_count = g_buttons[DpadNone][0].count;
     desc.menu_options = kOptions;
     desc.menu_option_count = sizeof(kOptions) / sizeof(kOptions[0]);
     desc.menu_defaults = kDefaults;
