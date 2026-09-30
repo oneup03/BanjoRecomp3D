@@ -1,0 +1,15 @@
+# Boot with the renderer: screenshots through the logos, the intro and the
+# title screen, then START/A to the file select.
+240 SHOT logo1
+480 SHOT logo2
+720 SHOT intro1
+960 SHOT intro2
+1080 6 START
+1320 SHOT title
+1500 6 START
+1740 SHOT after_start1
+1860 6 A
+2100 SHOT after_a1
+2220 6 A
+2460 SHOT after_a2
+2700 EXIT

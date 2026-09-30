@@ -1,0 +1,12 @@
+# Null-renderer boot: let the logos run, then press START/A through the intro
+# and the title screen to reach the file select.
+600 6 START
+900 6 START
+1200 6 A
+1500 6 START
+1800 6 A
+2100 6 A
+2400 6 A
+2700 6 A
+3000 LOG still running
+5400 EXIT

@@ -17,3 +17,6 @@
 	path = lib/SR-lib
 	url = https://github.com/bo3b/SR-lib.git
 	branch = api_expansion
+[submodule "lib/rt64-3ds"]
+	path = lib/rt64-3ds
+	url = https://github.com/oneup03/rt64-3ds.git

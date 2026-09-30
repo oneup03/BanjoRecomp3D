@@ -68,3 +68,10 @@ RSPRecomp
 
 # Controller mappings file
 gamecontrollerdb.txt
+
+# Nintendo 3DS build (platform/3ds)
+build-3ds/
+build-host/
+azahar-out/
+*.3dsx
+*.cia
