@@ -184,6 +184,9 @@ int main(int argc, char** argv) {
     desc.render.unclassified_persp = StereoClass::None;
     desc.render.unclassified_ortho = StereoClass::Hud;
     desc.render.frame_head_proj_id = PROJECTION_GAMEPLAY;
+    // The jiggy transition and the picture puzzles render the world into an
+    // image of their own and sample it; the pause copies the screen.
+    desc.render.render_to_texture = true;
     desc.render.hud_k_persp = 1.5455f;     // the desktop's perspective HUD shift for Banjo
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (rt64-3ds naudio_hle.cpp)
     desc.button_map = kButtons;
