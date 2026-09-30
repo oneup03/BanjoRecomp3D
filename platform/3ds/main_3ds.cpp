@@ -16,6 +16,7 @@ extern "C" {
 #include "librecomp/rsp.hpp"
 #include "librecomp/overlays.hpp"
 #include "librecomp/game.hpp"
+#include "librecomp/mods.hpp"
 #include "ultramodern/ultra64.h"
 
 extern "C" void recomp_entrypoint(uint8_t* rdram, recomp_context* ctx);
@@ -33,6 +34,21 @@ const ButtonMap kButtons[] = {
     { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y | KEY_DDOWN, N64_CDOWN },
     { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
 };
+// With Banjo Bee on, D-pad down is the N64 D-pad's down, the mod's key for
+// bee flight; C-Down stays on Y and the C-Stick.
+const ButtonMap kButtonsBee[] = {
+    { KEY_A, N64_A }, { KEY_B, N64_B }, { KEY_L, N64_Z }, { KEY_R, N64_R }, { KEY_START, N64_START },
+    { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y, N64_CDOWN }, { KEY_DDOWN, N64_DDOWN },
+    { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
+};
+
+// The game's init. Mods load only as the game starts, so the buttons follow
+// the ones enabled now.
+void bk_on_init_3ds(uint8_t* rdram, recomp_context* ctx) {
+    banjo::bk_on_init(rdram, ctx);
+    if (recomp::mods::is_mod_enabled("bk_recomp_mod_banjo_bee")) input_set_map(kButtonsBee, sizeof(kButtonsBee) / sizeof(kButtonsBee[0]));
+    else input_set_map(kButtons, sizeof(kButtons) / sizeof(kButtons[0]));
+}
 
 const char* const kSavingNames[] = { "Off", "Notes", "Jinjos", "Both" };
 const char* const kInvertNames[] = { "None", "X", "Y", "Both" };
@@ -176,7 +192,7 @@ int main(int argc, char** argv) {
         .has_compressed_code = true,
         .entrypoint_address = get_entrypoint_address(),
         .entrypoint = recomp_entrypoint,
-        .on_init_callback = banjo::bk_on_init,
+        .on_init_callback = bk_on_init_3ds,
     };
     desc.rsp.get_rsp_microcode = get_rsp_microcode;
     desc.register_overlays = banjo::register_bk_overlays;

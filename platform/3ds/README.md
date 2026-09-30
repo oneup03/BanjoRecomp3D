@@ -70,7 +70,7 @@ a mod on or off takes effect at the next start; options apply at once.
 | Skip It | ProxySaw | Cutscene skips and speed-ups |
 | Toggle Trot | ProxySaw | Talon Trot toggles instead of being held |
 | Transform Anywhere | ProxySaw | Mumbo's transformations anywhere |
-| Banjo Bee | TSR Stormed | Fly as Banjo Bee |
+| Banjo Bee | TSR Stormed | Fly as Banjo Bee: D-pad down turns it on or off, then jump (C-Down stays on Y and the C-Stick while the mod is on) |
 | Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise |
 | Sir Slush Configuration | Thermopolis | Tunes Sir Slush's attacks |
 
