@@ -185,6 +185,7 @@ int main(int argc, char** argv) {
     desc.render.unclassified_ortho = StereoClass::Hud;
     desc.render.frame_head_proj_id = PROJECTION_GAMEPLAY;
     desc.render.hud_k_persp = 1.5455f;     // the desktop's perspective HUD shift for Banjo
+    desc.audio_hle = true;      // n_aspMain interpreted on the CPU (rt64-3ds naudio_hle.cpp)
     desc.button_map = kButtons;
     desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
     desc.menu_options = kOptions;
