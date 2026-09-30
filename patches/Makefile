@@ -7,7 +7,7 @@ GBI_DEFINE := -DF3DEX_GBI
 CFLAGS   := -target mips -mips2 -mabi=32 -O2 -G0 -mno-abicalls -mno-odd-spreg -mno-check-zero-division \
 			-fomit-frame-pointer -ffast-math -fno-unsafe-math-optimizations -fno-builtin-memset -funsigned-char -fno-builtin-sinf -fno-builtin-cosf \
 			-Wall -Wextra -Wno-incompatible-library-redeclaration -Wno-unused-parameter -Wno-unknown-pragmas -Wno-unused-variable -Wno-missing-braces -Wno-unsupported-floating-point-opt -Wno-error=incompatible-pointer-types -Wno-cast-function-type-mismatch -Werror=pointer-bool-conversion
-CPPFLAGS := -nostdinc -D_LANGUAGE_C -DMIPS -I ../lib/bk-decomp/include -I ../lib/bk-decomp/include/2.0L -I ../lib/bk-decomp/include/2.0L/PR -I../lib/rt64/include -I../lib/N64ModernRuntime/ultramodern/include $(GBI_DEFINE)
+CPPFLAGS := -nostdinc -D_LANGUAGE_C -DMIPS -I ../lib/bk-decomp/include -I ../lib/bk-decomp/include/2.0L -I ../lib/bk-decomp/include/2.0L/PR -I../lib/rt64/include -I../lib/N64ModernRuntime/ultramodern/include $(GBI_DEFINE) $(PLATFORM_CPPFLAGS)
 LDFLAGS  := -nostdlib -T patches.ld -T syms.ld -Map patches.map --unresolved-symbols=ignore-all --emit-relocs
 
 C_SRCS := $(wildcard *.c)
