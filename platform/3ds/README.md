@@ -8,6 +8,9 @@ Status: the game plays at its full frame rate (30 fps) with stereo 3D,
 audio, the settings menu, the built-in mods and the three game modes in the
 Azahar emulator. On a New 3DS it has been played through the intro and into
 the game; the mods and game modes are so far checked in the emulator only.
+In the emulator's Old 3DS mode the intro and the game modes' title and file
+screens run at the rate the game asks for (20 or 30 fps), with the ROM read
+from the SD card; levels there, and a real Old 3DS, are untested.
 
 ## Installing
 
