@@ -50,6 +50,15 @@ const MenuOption kOptions[] = {
     { "bgm_volume", "Music volume", 0, 100, &g_bk_bgm_volume, nullptr, nullptr, PageGame, 5, "%" },
 };
 
+// Built-in mods left out of the game modes (and off their Mods page):
+// - Instant FFM replaces __overlay_lair_release, which all three game modes
+//   replace too: with it on, no game mode would load.
+// - Map Select warps to the original game's maps, which the hacks reuse
+//   for their own.
+// - Exit to Lair returns to the original game's lair entrances, which the
+//   hacks rework (Nostalgia 64 replaces 60-odd of the lair's warps).
+const char* const kModsNotInGameModes[] = { "bk_recomp_mod_instant_ffm", "bk_recomp_mod_map_select", "ProxyMM_ExitToLair" };
+
 // Defaults for the library's rows; settings.ini, once written, keeps what the
 // player chose.
 const MenuDefault kDefaults[] = {
@@ -153,6 +162,8 @@ int main(int argc, char** argv) {
     desc.game_id = u8"BK";
     // The desktop's version (src/main/main.cpp): mods check it.
     recomp::Version::from_string("1.0.2", desc.project_version);
+    desc.mods_not_in_game_modes = kModsNotInGameModes;
+    desc.mods_not_in_game_modes_count = sizeof(kModsNotInGameModes) / sizeof(kModsNotInGameModes[0]);
     desc.sd_dir = "BanjoRecomp";
     desc.entry = recomp::GameEntry{
         .rom_hash = 0x1B67585D56E07F8CULL,
