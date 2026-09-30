@@ -79,6 +79,11 @@ a mod on or off takes effect at the next start; options apply at once.
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
 
+In a game mode, Instant FFM, Map Select and Exit to Lair stay off and aren't
+listed: Instant FFM changes the same function the game modes do (a game mode
+would not start with it), and the other two are built around the original
+game's maps. They stay on for the game itself if you turned them on.
+
 ## Game modes
 
 Three ROM hacks can be played as game modes. Their code is built in; the
