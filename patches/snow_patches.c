@@ -209,7 +209,12 @@ RECOMP_PATCH bool func_802F989C(Gfx **gfx, Mtx **mtx, f32 arg2[3]) {
         // @recomp Remove frustum check.
         // This behavior must be ignored while in demo mode to not alter the RNG, as it'll affect the demo's result.
         //&& viewport_func_8024DB50(arg2, D_8038108C)
+#ifdef BK_3DS
+        // @recomp 3DS: keep the original frustum check (widened to the screen in viewport_update).
+        && viewport_func_8024DB50(arg2, D_8038108C)
+#else
         && (!recomp_in_demo_playback_game_mode() || viewport_func_8024DB50(arg2, D_8038108C))
+#endif
         ) {
         func_80251B5C(D_80381070[0], D_80381070[1], D_80381070[2]);
         mlMtxApply(*mtx);

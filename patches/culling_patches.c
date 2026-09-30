@@ -7,6 +7,9 @@
 
 extern f32 sViewportPosition[3];
 extern f32 sViewportFrustumPlanes[4][4];
+#ifdef BK_3DS
+extern f32 modelRenderScale;
+#endif
 void animMtxList_setBoned(AnimMtxList **this_ptr, BKAnimationList *anim_list, BoneTransformList *arg2);
 
 extern s32 cur_model_would_have_been_culled_in_demo;
@@ -78,6 +81,21 @@ RECOMP_PATCH void func_80338DCC(Gfx ** gfx, Mtx ** mtx, void *arg2){
     f32 sp2C[3];
     f32 sp20[3];
     GeoCmdD * cmd = (GeoCmdD *)arg2;
+#ifdef BK_3DS
+    // @recomp 3DS: cull as the original game does, against the frustum widened to the screen (viewport_update).
+    if(cmd->unk14){
+        sp2C[0] = (f32)cmd->unk8[0] * modelRenderScale;
+        sp2C[1] = (f32)cmd->unk8[1] * modelRenderScale;
+        sp2C[2] = (f32)cmd->unk8[2] * modelRenderScale;
+        sp20[0] = (f32)cmd->unkE[0] * modelRenderScale;
+        sp20[1] = (f32)cmd->unkE[1] * modelRenderScale;
+        sp20[2] = (f32)cmd->unkE[2] * modelRenderScale;
+        if(viewport_isBoundingBoxInFrustum(sp2C, sp20)){
+            func_80339124(gfx, mtx, (BKGeoList*)((s32)cmd + cmd->unk14));
+        }
+    }
+    return;
+#endif
     if(cmd->unk14){
         // @recomp Always run the child command.
         // sp2C[0] = (f32)cmd->unk8[0] * modelRenderScale;
@@ -95,6 +113,10 @@ RECOMP_PATCH void func_80338DCC(Gfx ** gfx, Mtx ** mtx, void *arg2){
 
 // @recomp Patched to disable frustum culling.
 RECOMP_PATCH bool viewport_isBoundingBoxInFrustum(f32 min[3], f32 max[3]) {
+#ifdef BK_3DS
+    // @recomp 3DS: the original culling, against the frustum widened to the screen (viewport_update).
+    return viewport_isBoundingBoxInFrustumCopy(min, max);
+#endif
     // @recomp Disable frustum culling for cubes outside of demos. Demos need to maintain the original
     // culling for cubes to prevent them from behaving differently than the original game.
     if (recomp_in_demo_playback_game_mode()) {
@@ -218,3 +240,44 @@ RECOMP_PATCH void actor_predrawMethod(Actor *this){
     func_8033056C(this);
     modelRender_setAnimatedTexturesCacheId(actor_getAnimatedTexturesCacheId(this));
 }
+
+#ifdef BK_3DS
+extern f32 sViewportLookVector[3];
+extern f32 sViewportRotation[3];
+extern MtxF sViewportMatrix;
+
+// The 3DS draws the game's frame at 5:3, a quarter wider than the 4:3 its
+// side frustum planes were built for (the renderer widens the projection).
+#define BK3DS_FRUSTUM_WIDEN 1.25f
+
+// @recomp 3DS: the original frustum update with the side planes widened to
+// the screen, so the original culling can stay on: drawing everything, as
+// the desktop does, costs the console too much.
+RECOMP_PATCH void viewport_update(void) {
+    func_80256E24(sViewportFrustumPlanes[0], sViewportRotation[0], sViewportRotation[1], -89.21774f, 0.0f, 45.168514251708984f * BK3DS_FRUSTUM_WIDEN);
+    func_80256E24(sViewportFrustumPlanes[1], sViewportRotation[0], sViewportRotation[1], 89.21774f, 0.0f, 45.168514251708984f * BK3DS_FRUSTUM_WIDEN);
+    func_80256E24(sViewportFrustumPlanes[2], sViewportRotation[0], sViewportRotation[1], 0.0f, 93.9692611694336f, 34.20201110839844f);
+    func_80256E24(sViewportFrustumPlanes[3], sViewportRotation[0], sViewportRotation[1], 0.0f, -93.9692611694336f, 34.20201110839844f);
+
+    ml_vec3f_normalize(sViewportFrustumPlanes[0]);
+    ml_vec3f_normalize(sViewportFrustumPlanes[1]);
+    ml_vec3f_normalize(sViewportFrustumPlanes[2]);
+    ml_vec3f_normalize(sViewportFrustumPlanes[3]);
+
+    sViewportFrustumPlanes[0][3] = -(sViewportPosition[0]*sViewportFrustumPlanes[0][0] + sViewportPosition[1]*sViewportFrustumPlanes[0][1] + sViewportPosition[2]*sViewportFrustumPlanes[0][2]);
+    sViewportFrustumPlanes[1][3] = -(sViewportPosition[0]*sViewportFrustumPlanes[1][0] + sViewportPosition[1]*sViewportFrustumPlanes[1][1] + sViewportPosition[2]*sViewportFrustumPlanes[1][2]);
+    sViewportFrustumPlanes[2][3] = -(sViewportPosition[0]*sViewportFrustumPlanes[2][0] + sViewportPosition[1]*sViewportFrustumPlanes[2][1] + sViewportPosition[2]*sViewportFrustumPlanes[2][2]);
+    sViewportFrustumPlanes[3][3] = -(sViewportPosition[0]*sViewportFrustumPlanes[3][0] + sViewportPosition[1]*sViewportFrustumPlanes[3][1] + sViewportPosition[2]*sViewportFrustumPlanes[3][2]);
+
+    mlMtxIdent();
+    mlMtxRotYaw(sViewportRotation[1]);
+    mlMtxRotPitch(sViewportRotation[0]);
+    mlMtxGet(&sViewportMatrix);
+
+    sViewportLookVector[0] = 0.0f;
+    sViewportLookVector[1] = 0.0f;
+    sViewportLookVector[2] = -1.0f;
+
+    mlMtx_apply_vec3f(sViewportLookVector, sViewportLookVector);
+}
+#endif

@@ -22,8 +22,13 @@ RECOMP_PATCH void func_80338B50(Gfx **gfx, Mtx **mtx, void *arg2) {
 
     if (cmd->subgeo_offset_1C) {
         mlMtx_apply_vec3f(D_80383C98, cmd->unk10);
+#ifdef BK_3DS
+        // @recomp 3DS: the original distance-based LOD; the far models save the console work.
+        dist = gu_sqrtf(D_80383C98[0] * D_80383C98[0] + D_80383C98[1] * D_80383C98[1] + D_80383C98[2] * D_80383C98[2]);
+#else
         // @recomp Force distance for LOD to be 50.
         dist = 50.0f; //gu_sqrtf(D_80383C98[0] * D_80383C98[0] + D_80383C98[1] * D_80383C98[1] + D_80383C98[2] * D_80383C98[2]);
+#endif
         if (cmd->min_C < dist && dist <= cmd->max_8) {
             func_80339124(gfx, mtx, (BKGeoList *)((s32)cmd + cmd->subgeo_offset_1C));
         }

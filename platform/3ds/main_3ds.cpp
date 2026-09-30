@@ -188,6 +188,10 @@ int main(int argc, char** argv) {
     // image of their own and sample it; the pause copies the screen.
     desc.render.render_to_texture = true;
     desc.render.hud_k_persp = 1.5455f;     // the desktop's perspective HUD shift for Banjo
+    // The original game's level of detail (gSPBranchLessZ), not the desktop's
+    // always-near models: the far ones save the console work. The patches
+    // keep the original culling and model LOD too (BK_3DS).
+    desc.render.force_lod_branch = false;
     // Auto convergence that keeps up with cutscenes: close-ups often sit low
     // in the frame and cut often, at 20 fps. Sample most of the frame's
     // height, filter over fewer frames and follow faster than DK64 does.

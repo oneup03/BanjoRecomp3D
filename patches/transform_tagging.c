@@ -500,6 +500,13 @@ void recomp_clear_map_skinning() {
 bool recomp_apply_cpu_skinning(BKModelUnk28List *arg0, BKVertexList *arg1, AnimMtxList *mtx_list, float *pos_override, float **pos, float **vel) {
     *pos = NULL;
     *vel = NULL;
+#ifdef BK_3DS
+    // @recomp 3DS: the renderer has no high-precision vertex segments, so the
+    // second (float) skinning pass would be wasted work.
+    sCurModelSkinningData = NULL;
+    sCurModelId = 0;
+    return FALSE;
+#endif
 
     ModelSkinningData prev_skinning_data = {0};
     u32 cur_model_id = sCurModelId;
@@ -684,10 +691,15 @@ RECOMP_PATCH BKModelBin *modelRender_draw(Gfx **gfx, Mtx **mtx, f32 position[3],
     cur_model_would_have_been_culled_in_demo = !((D_80383704) ? viewport_func_8024DB50(object_position, spD0*scale) : 1);
     D_80370990 = TRUE;
 
+#ifdef BK_3DS
+    // @recomp 3DS: keep the original culling (the frustum is widened to the screen in viewport_update).
+    D_80370990 = !cur_model_would_have_been_culled_in_demo;
+#else
     // @recomp Force the frustum check to be true if the game isn't in demo playback mode.
     if (!recomp_in_demo_playback_game_mode()) {
         cur_model_would_have_been_culled_in_demo = FALSE;
     }
+#endif
 
     if(D_80370990 == 0){
         modelRender_reset();
@@ -914,8 +926,10 @@ RECOMP_PATCH BKModelBin *modelRender_draw(Gfx **gfx, Mtx **mtx, f32 position[3],
         modelRenderRotation[0] = modelRenderRotation[1] = modelRenderRotation[2] = 0.0f;
     }
 
+#ifndef BK_3DS
     // @recomp Disable frustum checks before processing bones.
     set_frustum_checks_enabled(FALSE);
+#endif
 
     // @recomp Reset the transform ID offset and the bones flag.
     cur_model_transform_id_offset = 0;
@@ -923,8 +937,10 @@ RECOMP_PATCH BKModelBin *modelRender_draw(Gfx **gfx, Mtx **mtx, f32 position[3],
 
     func_80339124(gfx, mtx, (BKGeoList *)((u8 *)model_bin + model_bin->geo_list_offset_4));
     
+#ifndef BK_3DS
     // @recomp Re-enable frustum checks after processing bones.
     set_frustum_checks_enabled(TRUE);
+#endif
 
     gSPPopMatrix((*gfx)++, G_MTX_MODELVIEW);
 
