@@ -27,15 +27,17 @@ namespace {
 
 // A=A  B=B  L=Z  R=R  START=START; the C buttons on X (up), Y (down),
 // ZL (left), ZR (right), the D-pad and the C-Stick. Banjo has no use for the
-// N64 D-pad or L, but some built-in mods do, and while one of them is on the
-// buttons give it them:
-// - the D-pad directions a mod reads become the N64 D-pad's: down for Banjo
-//   Bee (its bee flight), all four for Transform Anywhere;
-// - ZL becomes N64 L for Ability Anywhere (L + A), Cheats (hold L to moon
-//   jump) and Transform Anywhere (its "L + D-pad" mode).
+// N64 D-pad or L, but some built-in mods do: the D-pad's down for Banjo Bee
+// (its bee flight), all four directions for Transform Anywhere, and L for
+// Ability Anywhere (L + A), Cheats (hold L to moon jump) and Transform
+// Anywhere (its "L + D-pad" mode). While one of them is on, those buttons are
+// either on the touch screen (the default: the buttons stay as they are),
+// or on the buttons themselves ("Mod buttons" on the Controls page):
+// - the D-pad directions a mod reads become the N64 D-pad's;
+// - ZL becomes N64 L.
 // The C buttons stay on X, Y, ZR and the C-Stick (and ZL or the D-pad where
 // those are free). An Old 3DS has no ZL, ZR or C-Stick: with Transform
-// Anywhere on, its camera can't turn with the C buttons.
+// Anywhere on the buttons, its camera can't turn with the C buttons.
 using namespace recomp3ds;
 constexpr const char* kBanjoBee = "bk_recomp_mod_banjo_bee";
 constexpr const char* kTransformAnywhere = "ProxyMM_TransformAnywhere";
@@ -62,16 +64,30 @@ void build_buttons(Buttons& b, DpadUse d, bool zl_is_l) {
     if (d == DpadAll) { add(KEY_DUP, N64_DUP); add(KEY_DLEFT, N64_DLEFT); add(KEY_DRIGHT, N64_DRIGHT); }
 }
 
-// The buttons for the mods on now: at the game's start, and whenever one is
-// switched on the Mods page (it takes effect at once).
+const char* const kModButtonNames[] = { "Touch screen", "D-pad, ZL" };
+int g_mod_buttons = 0;      // 0: on the touch screen, 1: the D-pad and ZL
+
+// The buttons for the mods on now: at the game's start, whenever one is
+// switched on the Mods page (it takes effect at once), and when "Mod
+// buttons" changes.
 void set_buttons() {
     auto on = [](const char* id) { return recomp::mods::is_mod_enabled(id); };
     const bool transform = on(kTransformAnywhere);
     const DpadUse d = transform ? DpadAll : on(kBanjoBee) ? DpadDown : DpadNone;
-    const bool zl_is_l = transform || on(kAbilityAnywhere) || on(kCheats);
-    const Buttons& b = g_buttons[d][zl_is_l ? 1 : 0];
-    input_set_map(b.map, b.count);
+    const bool need_l = transform || on(kAbilityAnywhere) || on(kCheats);
+    if (g_mod_buttons == 0) {
+        const Buttons& b = g_buttons[DpadNone][0];
+        input_set_map(b.map, b.count);
+        const uint16_t dpad = d == DpadAll ? (N64_DUP | N64_DDOWN | N64_DLEFT | N64_DRIGHT) : d == DpadDown ? N64_DDOWN : 0;
+        touch_pad_set(dpad | (need_l ? N64_L : 0));
+    }
+    else {
+        const Buttons& b = g_buttons[d][need_l ? 1 : 0];
+        input_set_map(b.map, b.count);
+        touch_pad_set(0);
+    }
 }
+void mod_buttons_changed(int) { set_buttons(); }
 void bk_on_init_3ds(uint8_t* rdram, recomp_context* ctx) {
     banjo::bk_on_init(rdram, ctx);
     set_buttons();
@@ -89,6 +105,7 @@ const MenuOption kOptions[] = {
     // camera may turn (recomp_set_right_analog_suppressed).
     { "analog_cam", "Analog camera", 0, 1, &g_bk_analog_cam, kOffOnNames, nullptr, PageControls },
     { "analog_cam_speed", "Analog camera sensitivity", 1, 10, &g_bk_analog_cam_sensitivity, nullptr, nullptr, PageControls },
+    { "mod_buttons", "Mod buttons", 0, 1, &g_mod_buttons, kModButtonNames, mod_buttons_changed, PageControls },
     { "camera_invert", "Invert camera", 0, 3, &g_bk_camera_invert, kInvertNames, nullptr, PageControls },
     { "first_person_invert", "Invert first person view", 0, 3, &g_bk_first_person_invert, kInvertNames, nullptr, PageControls },
     { "fly_swim_invert", "Invert flying & swimming", 0, 3, &g_bk_fly_swim_invert, kInvertNames, nullptr, PageControls },

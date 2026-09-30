@@ -53,8 +53,8 @@ sdmc:/3ds/BanjoRecomp/
 | Circle Pad | analog stick |
 | C-Stick | C buttons, or the analog camera (Controls settings) |
 
-SELECT opens the settings on the bottom screen. Some built-in mods change
-what the D-pad and ZL do while they're on: see Mods.
+SELECT opens the settings on the bottom screen. Some built-in mods add
+buttons on the touch screen while they're on: see Mods.
 
 ## Mods
 
@@ -63,26 +63,34 @@ Mods from the Banjo: Recompiled community are built into the executable (the
 from the Mods page of the settings, which also holds their options. Both
 take effect at once, and are kept in `settings.ini`.
 
-Buttons below are the 3DS's (the game's own moves keep their usual buttons:
-see Controls).
+"D-pad" and "L" below are the N64's, which these mods put on the touch
+screen (or on the D-pad and ZL: see below); other buttons are the 3DS's, as
+in Controls.
 
 | Mod | Author | What it does | How to use it |
 |---|---|---|---|
-| Ability Anywhere | ProxySaw | Flight and the Shock Jump without their pads | Standing or walking, hold ZL and press A: tap A to take off, hold A to Shock Jump. With "Require Ability Unlocks" on, only the moves you've learned. |
+| Ability Anywhere | ProxySaw | Flight and the Shock Jump without their pads | Standing or walking, hold L and press A: tap A to take off, hold A to Shock Jump. With "Require Ability Unlocks" on, only the moves you've learned. |
 | Banjo Bee | TSR Stormed | Fly as Banjo Bee | D-pad down turns bee flight on or off (a message says which); then jump to fly. |
-| Cheats | ProxySaw | Moon jump, extra speed, infinite health, lives, ammo and air | Each is an option. Moon Jump: hold ZL to float up. Speed Modifier: hold R to run faster. The rest need no buttons. |
+| Cheats | ProxySaw | Moon jump, extra speed, infinite health, lives, ammo and air | Each is an option. Moon Jump: hold L to float up. Speed Modifier: hold R to run faster. The rest need no buttons. |
 | Exit To Lair | ProxySaw | The game's unused "Exit to Lair" pause option | Pause (START) inside a world and choose it. |
 | Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise | Nothing to press; options choose which noises. |
 | Sir Slush Configuration | Thermopolis | Tunes the Freezeezy Peak snowmen's snowballs | Nothing to press; options set their attacks. |
 | Skip It | ProxySaw | Skips cutscenes, text and Bottles' lessons, speeds up Mumbo, boots straight to the file select | Each is an option. "Skip Cutscenes: Press Start" skips a cutscene with START; the rest work by themselves. |
-| Toggle Trot | ProxySaw | Talon Trot stays on without holding Z | Start Talon Trot as usual (hold L, press C-Left), let go and keep trotting; press L again to stop. |
-| Transform Anywhere | ProxySaw | Mumbo's transformations anywhere | D-pad up: washing machine. Down: crocodile, then walrus. Left: bee. Right: termite, then pumpkin. Pressing a direction again moves to its next form, then back to Banjo. "Token Payment" (on at first) allows only the forms you've paid Mumbo's tokens for; turn it off for all of them. "Allowed Transformations: Current World" gives only D-pad up, for the world you're in. "Button Mode: L + D-pad" needs ZL held with the D-pad. |
+| Toggle Trot | ProxySaw | Talon Trot stays on without holding Z | Start Talon Trot as usual (hold the 3DS's L, which is Z, and press C-Left), let go and keep trotting; press it again to stop. |
+| Transform Anywhere | ProxySaw | Mumbo's transformations anywhere | D-pad up: washing machine. Down: crocodile, then walrus. Left: bee. Right: termite, then pumpkin. Pressing a direction again moves to its next form, then back to Banjo. "Token Payment" (on at first) allows only the forms you've paid Mumbo's tokens for; turn it off for all of them. "Allowed Transformations: Current World" gives only D-pad up, for the world you're in. "Button Mode: L + D-pad" needs L held with the D-pad (on the buttons only: the touch screen takes one touch at a time). |
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
 
-Some mods read N64 buttons Banjo's controls otherwise leave out (the D-pad
-doubles the C buttons, and L is Z), so while one of them is on the buttons
-change. The changes add up when several are on:
+Some mods read N64 buttons Banjo's controls otherwise leave out: the D-pad
+(Banjo Bee uses its down, Transform Anywhere all four directions) and L
+(Ability Anywhere, Cheats, Transform Anywhere's "L + D-pad" mode). While one
+of them is on, those buttons appear on the touch screen, under the status
+lines: touch and hold one to press it (one at a time). They make way while
+the settings are open.
+
+"Mod buttons" on the Controls page can put them on the buttons instead: then
+the D-pad's directions those mods use become the N64 D-pad's, and ZL becomes
+N64 L. The changes add up when several mods are on:
 
 | Mod on | D-pad | ZL | C-Left is on |
 |---|---|---|---|
@@ -91,9 +99,7 @@ change. The changes add up when several are on:
 | Transform Anywhere | the N64 D-pad | N64 L | C-Stick |
 
 C-Up stays on X, C-Down on Y and C-Right on ZR throughout. An Old 3DS has no
-ZL, ZR or C-Stick: there the ZL moves can't be made, and with Transform
-Anywhere on the C-Left and C-Right buttons are gone (camera turning, Talon
-Trot).
+ZL, ZR or C-Stick, so keep "Mod buttons" on the touch screen there.
 
 In a game mode, Exit to Lair stays off and isn't listed: it returns to the
 original game's lair entrances, which the game modes rework. It stays on for
