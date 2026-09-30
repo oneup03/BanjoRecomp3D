@@ -60,6 +60,24 @@ a mod on or off takes effect at the next start; options apply at once.
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
 
+## Game modes
+
+Three ROM hacks can be played as game modes. Their code is built in; the
+hack itself comes from the mod's file, which you download:
+
+| Game mode | Version | Thunderstore package |
+|---|---|---|
+| BK The Jiggies of Time | 1.0.1 | [KurkoMods/BK_The_Jiggies_of_Time](https://thunderstore.io/c/banjo-recompiled/p/KurkoMods/BK_The_Jiggies_of_Time/) |
+| BK Nostalgia 64 | 1.0.1 | [KurkoMods/BK_Nostalgia_64](https://thunderstore.io/c/banjo-recompiled/p/KurkoMods/BK_Nostalgia_64/) |
+| Banjo Dreamie | 1.3.2 | [Loggo/Banjo_Dreamie](https://thunderstore.io/c/banjo-recompiled/p/Loggo/Banjo_Dreamie/) |
+
+Take the `.nrm` out of the package (a zip) and copy it to
+`sdmc:/3ds/BanjoRecomp/mods/`. It must be the version above: another one is
+refused at start. With one there, a menu at start offers the game and each
+game mode. The first start of a mode writes its ROM (64 MB) to
+`sdmc:/3ds/BanjoRecomp/modes/`, which takes a while; each mode keeps its own
+saves.
+
 ## Building
 
 ```

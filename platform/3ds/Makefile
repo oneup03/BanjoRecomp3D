@@ -29,11 +29,13 @@ APPDIR     := $(AZAHAR_SD)/3ds/BanjoRecomp
 DECOMP_ROM := banjo.us.v10.decompressed.z64
 MODS_OUT   := $(ROOT)/RecompiledMods
 MODS_NRM   := $(ROOT)/build-mods/nrm
+GAME_MODES := $(ROOT)/build-mods/gamemodes
 # Mods built into the executable (rt64-3ds tools/mod_bake): .nrm files, each
 # with ":embed" to carry the file itself too (code mods; a game mode's comes
 # from the SD card, with the ROM patch). By default the code mods of
-# mods.list, built from source by `code-mods`. Changing it needs `codegen`.
-BAKE_MODS  ?= $(addsuffix :embed,$(sort $(wildcard $(MODS_NRM)/*.nrm)))
+# mods.list, built from source by `code-mods`, and the game modes
+# `game-modes` fetches. Changing it needs `codegen`.
+BAKE_MODS  ?= $(addsuffix :embed,$(sort $(wildcard $(MODS_NRM)/*.nrm))) $(sort $(wildcard $(GAME_MODES)/*.nrm))
 
 # devkitPro's own pacman installs to /opt/devkitpro (3ds-dev group).
 export DEVKITPRO ?= /opt/devkitpro
@@ -58,7 +60,7 @@ host-tools:
 # of every function a baked mod replaces or hooks).
 codegen:
 	cd $(ROOT) && { [ -e $(DECOMP_ROM) ] || ln -s decompressed.us.v10.z64 $(DECOMP_ROM); }
-	$(MAKE) patches-elf code-mods
+	$(MAKE) patches-elf code-mods game-modes
 	$(MAKE) mods
 	cd $(ROOT) && cat banjo.us.rev0.toml $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
 	cd $(ROOT) && $(HOST)/RSPRecomp n_aspMain.us.rev0.toml
@@ -75,6 +77,10 @@ patches-elf:
 # git submodule update --init --checkout platform/3ds/mods).
 code-mods:
 	$(CURDIR)/build_mods.sh $(HOST)/RecompModTool $(MODS_NRM) $(PATCH_CC) $(LLD)
+
+# The game modes' pinned packages (fetch_game_modes.sh): only their code is used.
+game-modes:
+	$(CURDIR)/fetch_game_modes.sh $(GAME_MODES)
 
 mods:
 	rm -rf $(MODS_OUT)
@@ -114,4 +120,4 @@ hw: build
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all nmr-patch host-tools codegen patches patches-elf code-mods mods patches-recomp configure build cia deploy-azahar run-azahar hw clean
+.PHONY: all nmr-patch host-tools codegen patches patches-elf code-mods game-modes mods patches-recomp configure build cia deploy-azahar run-azahar hw clean
