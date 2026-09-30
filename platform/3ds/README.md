@@ -88,11 +88,12 @@ hack itself comes from the mod's file, which you download:
 | Banjo Dreamie | 1.3.2 | [Loggo/Banjo_Dreamie](https://thunderstore.io/c/banjo-recompiled/p/Loggo/Banjo_Dreamie/) |
 
 Take the `.nrm` out of the package (a zip) and copy it to
-`sdmc:/3ds/BanjoRecomp/mods/`. It must be the version above: another one is
-refused at start. With one there, a menu at start offers the game and each
-game mode. The first start of a mode writes its ROM (64 MB) to
-`sdmc:/3ds/BanjoRecomp/modes/`, which takes a while; each mode keeps its own
-saves.
+`sdmc:/3ds/BanjoRecomp/mods/`. With one there, a menu at start offers the
+game and each game mode. A mode that can't be played is listed in red with
+the reason: the file it needs, or the version it needs when the file is
+another version than the one above. The first start of a mode writes its
+ROM (64 MB) to `sdmc:/3ds/BanjoRecomp/modes/`, which takes about 10 seconds
+in the emulator; each mode keeps its own saves.
 
 ## Building
 
