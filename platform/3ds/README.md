@@ -70,17 +70,15 @@ a mod on or off takes effect at the next start; options apply at once.
 | Skip It | ProxySaw | Cutscene skips and speed-ups |
 | Toggle Trot | ProxySaw | Talon Trot toggles instead of being held |
 | Transform Anywhere | ProxySaw | Mumbo's transformations anywhere |
-| Always High Poly Banjo | TSR Stormed | Always the high-poly Banjo model |
 | Banjo Bee | TSR Stormed | Fly as Banjo Bee |
-| Map Select | TSR Stormed | Warp to any map (opens with the N64 D-pad, which the 3DS does not map yet) |
 | Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise |
 | Sir Slush Configuration | Thermopolis | Tunes Sir Slush's attacks |
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
 
-In a game mode, Map Select and Exit to Lair stay off and aren't listed: both
-are built around the original game's maps. They stay on for the game itself
-if you turned them on.
+In a game mode, Exit to Lair stays off and isn't listed: it returns to the
+original game's lair entrances, which the game modes rework. It stays on for
+the game itself if you turned it on.
 
 ## Game modes
 

@@ -50,13 +50,11 @@ const MenuOption kOptions[] = {
     { "bgm_volume", "Music volume", 0, 100, &g_bk_bgm_volume, nullptr, nullptr, PageGame, 5, "%" },
 };
 
-// Built-in mods left out of the game modes (and off their Mods page):
-// - Map Select warps to the original game's maps, which the hacks reuse
-//   for their own.
-// - Exit to Lair returns to the original game's lair entrances, which the
-//   hacks rework (Nostalgia 64 replaces 60-odd of the lair's warps).
-// None replaces a function a game mode replaces (a mode would fail to load).
-const char* const kModsNotInGameModes[] = { "bk_recomp_mod_map_select", "ProxyMM_ExitToLair" };
+// Built-in mods left out of the game modes (and off their Mods page): Exit
+// to Lair returns to the original game's lair entrances, which the hacks
+// rework (Nostalgia 64 replaces 60-odd of the lair's warps). No built-in mod
+// replaces a function a game mode replaces (the mode would fail to load).
+const char* const kModsNotInGameModes[] = { "ProxyMM_ExitToLair" };
 
 // Defaults for the library's rows; settings.ini, once written, keeps what the
 // player chose.

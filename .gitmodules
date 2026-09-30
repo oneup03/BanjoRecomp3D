@@ -24,17 +24,9 @@
 	path = platform/3ds/mods/ProxyBK_RecompMods
 	url = https://github.com/garrettjoecox/ProxyBK_RecompMods.git
 	update = none
-[submodule "platform/3ds/mods/BanjoRecompMapSelect"]
-	path = platform/3ds/mods/BanjoRecompMapSelect
-	url = https://github.com/TSRStormed/BanjoRecompMapSelect.git
-	update = none
 [submodule "platform/3ds/mods/BanjoBeeMod"]
 	path = platform/3ds/mods/BanjoBeeMod
 	url = https://github.com/TSRStormed/BanjoBeeMod.git
-	update = none
-[submodule "platform/3ds/mods/AlwaysHighPolyBanjo"]
-	path = platform/3ds/mods/AlwaysHighPolyBanjo
-	url = https://github.com/TSRStormed/AlwaysHighPolyBanjo.git
 	update = none
 [submodule "platform/3ds/mods/QuietTalonTrot"]
 	path = platform/3ds/mods/QuietTalonTrot
