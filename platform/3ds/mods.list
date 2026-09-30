@@ -1,0 +1,16 @@
+# Code mods built into the 3DS executable (build_mods.sh). All CC0, from the
+# submodules in mods/: <repo> [<package>] (the ProxyBK repo builds one
+# package at a time). They are built against this repository's bk-decomp and
+# BanjoRecompSyms, not their own submodules.
+ProxyBK_RecompMods ExitToLair
+ProxyBK_RecompMods SkipIt
+ProxyBK_RecompMods ToggleTrot
+ProxyBK_RecompMods TransformAnywhere
+ProxyBK_RecompMods AbilityAnywhere
+ProxyBK_RecompMods Cheats
+BanjoRecompMapSelect
+InstantFFMMod
+BanjoBeeMod
+AlwaysHighPolyBanjo
+QuietTalonTrot
+BK-Sir-Slush-Configuration

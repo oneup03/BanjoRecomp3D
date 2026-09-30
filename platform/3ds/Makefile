@@ -28,10 +28,12 @@ APPDIR     := $(AZAHAR_SD)/3ds/BanjoRecomp
 # The name banjo.us.rev0.toml and n_aspMain.us.rev0.toml read the ROM under.
 DECOMP_ROM := banjo.us.v10.decompressed.z64
 MODS_OUT   := $(ROOT)/RecompiledMods
+MODS_NRM   := $(ROOT)/build-mods/nrm
 # Mods built into the executable (rt64-3ds tools/mod_bake): .nrm files, each
 # with ":embed" to carry the file itself too (code mods; a game mode's comes
-# from the SD card, with the ROM patch). Changing the list needs `codegen`.
-BAKE_MODS  ?=
+# from the SD card, with the ROM patch). By default the code mods of
+# mods.list, built from source by `code-mods`. Changing it needs `codegen`.
+BAKE_MODS  ?= $(addsuffix :embed,$(sort $(wildcard $(MODS_NRM)/*.nrm)))
 
 # devkitPro's own pacman installs to /opt/devkitpro (3ds-dev group).
 export DEVKITPRO ?= /opt/devkitpro
@@ -46,7 +48,7 @@ nmr-patch:
 
 host-tools:
 	cmake -S $(ROOT)/lib/N64ModernRuntime/N64Recomp -B $(HOST) -G Ninja -DCMAKE_BUILD_TYPE=Release
-	cmake --build $(HOST) --target N64RecompCLI RSPRecomp -j
+	cmake --build $(HOST) --target N64RecompCLI RSPRecomp RecompModTool -j
 	g++ -std=c++17 -O2 -o $(HOST)/file_to_c $(ROOT)/lib/rt64/src/tools/file_to_c/file_to_c.cpp
 	HOST=$(HOST) OUT=$(HOST)/mod_bake $(RT64_3DS)/tools/mod_bake/build.sh $(ROOT)
 
@@ -56,7 +58,8 @@ host-tools:
 # of every function a baked mod replaces or hooks).
 codegen:
 	cd $(ROOT) && { [ -e $(DECOMP_ROM) ] || ln -s decompressed.us.v10.z64 $(DECOMP_ROM); }
-	$(MAKE) patches-elf mods
+	$(MAKE) patches-elf code-mods
+	$(MAKE) mods
 	cd $(ROOT) && cat banjo.us.rev0.toml $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
 	cd $(ROOT) && $(HOST)/RSPRecomp n_aspMain.us.rev0.toml
 	$(MAKE) patches-recomp
@@ -67,6 +70,11 @@ patches: patches-elf mods patches-recomp
 
 patches-elf:
 	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) PLATFORM_CPPFLAGS=-DBK_3DS
+
+# The code mods of mods.list, from their submodules (mods/; fetch them with
+# git submodule update --init --checkout platform/3ds/mods).
+code-mods:
+	$(CURDIR)/build_mods.sh $(HOST)/RecompModTool $(MODS_NRM) $(PATCH_CC) $(LLD)
 
 mods:
 	rm -rf $(MODS_OUT)
@@ -106,4 +114,4 @@ hw: build
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all nmr-patch host-tools codegen patches patches-elf mods patches-recomp configure build cia deploy-azahar run-azahar hw clean
+.PHONY: all nmr-patch host-tools codegen patches patches-elf code-mods mods patches-recomp configure build cia deploy-azahar run-azahar hw clean

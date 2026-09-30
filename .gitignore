@@ -12,6 +12,7 @@ RecompiledFuncs/
 RecompiledPatches/
 # 3DS build: baked mods, and the recompiler configs with their hooks (platform/3ds)
 RecompiledMods/
+build-mods/
 banjo.us.rev0.3ds.toml
 patches.3ds.toml
 

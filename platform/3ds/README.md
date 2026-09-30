@@ -36,12 +36,37 @@ the same folder.
 
 SELECT opens the settings on the bottom screen.
 
+## Mods
+
+Mods from the Banjo: Recompiled community are built into the executable (the
+3DS cannot load mod code at runtime). They start switched off: turn them on
+from the Mods page of the settings, which also holds their options. Turning
+a mod on or off takes effect at the next start; options apply at once.
+
+| Mod | Author | What it does |
+|---|---|---|
+| Ability Anywhere | ProxySaw | Fly or Shock Jump anywhere, no pad needed |
+| Cheats | ProxySaw | Moon jump, speed, infinite health, lives, ammo and air |
+| Exit To Lair | ProxySaw | An Exit to Lair option in the pause menu |
+| Skip It | ProxySaw | Cutscene skips and speed-ups |
+| Toggle Trot | ProxySaw | Talon Trot toggles instead of being held |
+| Transform Anywhere | ProxySaw | Mumbo's transformations anywhere |
+| Always High Poly Banjo | TSR Stormed | Always the high-poly Banjo model |
+| Banjo Bee | TSR Stormed | Fly as Banjo Bee |
+| Instant FFM | TSR Stormed | "No FFM setup required!" |
+| Map Select | TSR Stormed | Warp to any map (opens with the N64 D-pad, which the 3DS does not map yet) |
+| Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise |
+| Sir Slush Configuration | Thermopolis | Tunes Sir Slush's attacks |
+
+All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
+
 ## Building
 
 ```
 git submodule update --init --recursive     # rt64-3ds has a submodule of its own
+git submodule update --init --checkout platform/3ds/mods   # the built-in mods' sources
 make -C platform/3ds nmr-patch host-tools   # once
-make -C platform/3ds codegen                # after changing the ROM inputs or the patches
+make -C platform/3ds codegen                # after changing the ROM inputs, the patches or mods.list
 make -C platform/3ds                        # the .3dsx in build-3ds/
 make -C platform/3ds deploy-azahar          # copy it to the Azahar emulator's SD card
 ```
