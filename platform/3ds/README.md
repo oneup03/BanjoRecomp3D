@@ -4,20 +4,36 @@ Banjo: Recompiled for the New Nintendo 3DS and New 2DS XL, with
 stereoscopic 3D. The renderer and platform layer are
 [rt64-3ds](https://github.com/oneup03/rt64-3ds) (`lib/rt64-3ds`).
 
-Status: under construction. The game boots, and the intro, title screen and
-file select render; audio runs the recompiled microcode (slow); stereo,
-the settings and the built-in mods are still to come.
+Status: the game plays at its full frame rate (30 fps) with stereo 3D,
+audio, the settings menu, the built-in mods and the three game modes in the
+Azahar emulator. On a New 3DS it has been played through the intro and into
+the game; the mods and game modes are so far checked in the emulator only.
 
 ## Installing
 
 Extract the `.3dsx` to `sdmc:/3ds/BanjoRecomp/BanjoRecomp.3dsx` and start it
-from the Homebrew Launcher.
+from the Homebrew Launcher, or install the `.cia` (with FBI, for instance)
+to start it from the HOME Menu. Both use the same folder on the SD card.
 
 It needs your own ROM: the US 1.0 version of Banjo-Kazooie in .z64 format
 (the file the desktop version asks for), at `sdmc:/3ds/BanjoRecomp/BK.z64`.
 The game checks the ROM's hash at start and deletes a file that does not
-match, so copy it rather than move it. Saves and `settings.ini` are kept in
-the same folder.
+match, so copy it rather than move it.
+
+What the folder holds once the game has run:
+
+```
+sdmc:/3ds/BanjoRecomp/
+  BanjoRecomp.3dsx   the program (not needed with the CIA installed)
+  BK.z64             your ROM
+  mods/              game modes' .nrm files (see "Game modes")
+  modes/             the game modes' ROMs, made on their first start
+  saves/             saves; a game mode keeps its own in saves/<mod id>/
+  mod_config/        the built-in mods' options
+  mods.json          which built-in mods are on
+  settings.ini       the settings (once one is changed)
+  log.txt            the last run's log, useful in a bug report
+```
 
 ## Controls
 
