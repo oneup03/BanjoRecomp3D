@@ -39,14 +39,20 @@ SELECT opens the settings on the bottom screen.
 ## Building
 
 ```
+git submodule update --init --recursive     # rt64-3ds has a submodule of its own
 make -C platform/3ds nmr-patch host-tools   # once
 make -C platform/3ds codegen                # after changing the ROM inputs or the patches
 make -C platform/3ds                        # the .3dsx in build-3ds/
 make -C platform/3ds deploy-azahar          # copy it to the Azahar emulator's SD card
 ```
 
-This needs devkitPro (devkitARM, libctru, citro3d; `DEVKITPRO` defaults to
-`~/devkitpro`), clang with the MIPS target and `ld.lld` for the patches
-(`PATCH_CC=`, `LLD=`, `LLD_LIBS=` to name other ones) and the decompressed
-ROM in the repository root, as for the desktop build. `RT64_3DS=<path>`
-builds against an rt64-3ds checkout elsewhere.
+This needs devkitPro's `3ds-dev` group (`DEVKITPRO` defaults to
+`/opt/devkitpro`), `makerom` and `bannertool` on the PATH for the CIA, clang
+with the MIPS target and `ld.lld` for the patches (`PATCH_CC=`, `LLD=`,
+`LLD_LIBS=` to name other ones) and the decompressed ROM in the repository
+root, as for the desktop build. `RT64_3DS=<path>` builds against an rt64-3ds
+checkout elsewhere.
+
+On Fedora: `sudo dnf install clang lld cmake ninja-build pacman`, then
+devkitPro's pacman setup for Fedora (https://devkitpro.org/wiki/devkitPro_pacman)
+and `sudo pacman -S 3ds-dev`.

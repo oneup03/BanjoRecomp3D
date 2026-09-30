@@ -1,0 +1,15 @@
+# Title -> file select -> start a new game in slot 1, screenshots every 4 s.
+1080 2 START
+1500 2 START
+1860 2 A
+1980 SHOT ng1
+2100 2 A
+2220 SHOT ng2
+2340 2 A
+2460 SHOT ng3
+2700 SHOT ng4
+2940 SHOT ng5
+3180 SHOT ng6
+3420 SHOT ng7
+3660 SHOT ng8
+3900 EXIT

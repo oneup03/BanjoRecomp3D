@@ -8,9 +8,10 @@
 #   make cia          installable title (needs makerom + bannertool)
 #   make deploy-azahar / run-azahar / hw N3DS_IP=...
 #
-# Needs DEVKITPRO (user-prefix installs are fine), clang with the MIPS target
-# and ld.lld for the patches (PATCH_CC=... / LLD=... to name other ones;
-# LLD_LIBS=... when that ld.lld needs its libraries on the loader path), the
+# Needs devkitPro's 3ds-dev (DEVKITPRO, default /opt/devkitpro), makerom and
+# bannertool on the PATH for the CIA, clang with the MIPS target and ld.lld
+# for the patches (PATCH_CC=... / LLD=... to name other ones; LLD_LIBS=...
+# when that ld.lld needs its libraries on the loader path), the
 # decompressed ROM in the repository root (decompressed.us.v10.z64, as for the
 # desktop build) and the submodules, rt64-3ds (lib/rt64-3ds; RT64_3DS=... for a
 # checkout elsewhere) among them.
@@ -27,7 +28,8 @@ APPDIR     := $(AZAHAR_SD)/3ds/BanjoRecomp
 # The name banjo.us.rev0.toml and n_aspMain.us.rev0.toml read the ROM under.
 DECOMP_ROM := banjo.us.v10.decompressed.z64
 
-export DEVKITPRO ?= $(HOME)/devkitpro
+# devkitPro's own pacman installs to /opt/devkitpro (3ds-dev group).
+export DEVKITPRO ?= /opt/devkitpro
 export DEVKITARM ?= $(DEVKITPRO)/devkitARM
 
 all: build
