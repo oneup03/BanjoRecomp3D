@@ -199,6 +199,7 @@ int main(int argc, char** argv) {
     desc.render.autoconv.ease_in = 0.25f;
     desc.render.autoconv.ease_out = 0.08f;
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (rt64-3ds naudio_hle.cpp)
+    desc.audio_hle_variant = recomp3ds::NaudioVariant::BanjoKazooie;   // no phase-inverted voices in this build
     desc.button_map = kButtons;
     desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
     desc.menu_options = kOptions;
