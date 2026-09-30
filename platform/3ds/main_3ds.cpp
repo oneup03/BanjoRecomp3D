@@ -188,6 +188,16 @@ int main(int argc, char** argv) {
     // image of their own and sample it; the pause copies the screen.
     desc.render.render_to_texture = true;
     desc.render.hud_k_persp = 1.5455f;     // the desktop's perspective HUD shift for Banjo
+    // Auto convergence that keeps up with cutscenes: close-ups often sit low
+    // in the frame and cut often, at 20 fps. Sample most of the frame's
+    // height, filter over fewer frames and follow faster than DK64 does.
+    desc.render.autoconv.region_bottom = 0.9f;
+    desc.render.autoconv.history = 5;
+    desc.render.autoconv.approach = 0.4f;
+    desc.render.autoconv.retreat = 0.08f;
+    desc.render.autoconv.cut_ratio = 1.8f;
+    desc.render.autoconv.ease_in = 0.25f;
+    desc.render.autoconv.ease_out = 0.08f;
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (rt64-3ds naudio_hle.cpp)
     desc.button_map = kButtons;
     desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
