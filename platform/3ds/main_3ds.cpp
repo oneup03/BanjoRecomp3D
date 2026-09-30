@@ -34,23 +34,19 @@ const ButtonMap kButtons[] = {
     { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
 };
 
-void analog_cam_changed(int on) {
-    // The analog camera reads the C-Stick itself; its C buttons would also
-    // turn and zoom the camera.
-    input_set_cstick_buttons(on == 0);
-}
-
 const char* const kSavingNames[] = { "Off", "Notes", "Jinjos", "Both" };
 const char* const kInvertNames[] = { "None", "X", "Y", "Both" };
 const char* const kOffOnNames[] = { "Off", "On" };
 // The desktop's options on the 3DS menu's pages, with the desktop's defaults.
 const MenuOption kOptions[] = {
-    { "analog_cam", "Analog camera", 0, 1, &g_bk_analog_cam, kOffOnNames, analog_cam_changed, PageControls },
-    { "analog_cam_speed", "Analog speed", 1, 10, &g_bk_analog_cam_sensitivity, nullptr, nullptr, PageControls },
-    { "camera_invert", "Camera invert", 0, 3, &g_bk_camera_invert, kInvertNames, nullptr, PageControls },
-    { "first_person_invert", "Aim invert", 0, 3, &g_bk_first_person_invert, kInvertNames, nullptr, PageControls },
-    { "fly_swim_invert", "Fly/swim inv.", 0, 3, &g_bk_fly_swim_invert, kInvertNames, nullptr, PageControls },
-    { "note_saving", "Note saving", 0, 3, &g_bk_note_saving, kSavingNames, nullptr, PageGame },
+    // The game turns the C-Stick's C buttons off itself while the analog
+    // camera may turn (recomp_set_right_analog_suppressed).
+    { "analog_cam", "Analog camera", 0, 1, &g_bk_analog_cam, kOffOnNames, nullptr, PageControls },
+    { "analog_cam_speed", "Analog camera sensitivity", 1, 10, &g_bk_analog_cam_sensitivity, nullptr, nullptr, PageControls },
+    { "camera_invert", "Invert camera", 0, 3, &g_bk_camera_invert, kInvertNames, nullptr, PageControls },
+    { "first_person_invert", "Invert first person view", 0, 3, &g_bk_first_person_invert, kInvertNames, nullptr, PageControls },
+    { "fly_swim_invert", "Invert flying & swimming", 0, 3, &g_bk_fly_swim_invert, kInvertNames, nullptr, PageControls },
+    { "note_saving", "Note & Jinjo saving", 0, 3, &g_bk_note_saving, kSavingNames, nullptr, PageGame },
     { "bgm_volume", "Music volume", 0, 100, &g_bk_bgm_volume, nullptr, nullptr, PageGame, 5, "%" },
 };
 

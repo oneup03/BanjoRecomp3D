@@ -21,10 +21,10 @@
 
 namespace recomp3ds {
     void input_get_right_stick(float* x, float* y);   // input_hid.cpp
+    void input_set_cstick_buttons(bool on);
 }
 
 namespace {
-bool g_right_analog_suppressed = false;
 
 // The top screen, the "window" the desktop's aspect ratio options see.
 constexpr int kScreenWidth = 400;
@@ -189,18 +189,19 @@ extern "C" void recomp_get_jinjo_saving_enabled(uint8_t* rdram, recomp_context* 
     _return<s32>(ctx, g_bk_note_saving == BK_SAVING_JINJOS || g_bk_note_saving == BK_SAVING_BOTH);
 }
 
+// The analog camera's stick: the C-Stick, always (the desktop reads it
+// without the suppression below).
 extern "C" void recomp_get_right_analog_inputs(uint8_t* rdram, recomp_context* ctx) {
     float* x_out = _arg<0, float*>(rdram, ctx);
     float* y_out = _arg<1, float*>(rdram, ctx);
-    if (g_right_analog_suppressed) {
-        *x_out = 0.0f; *y_out = 0.0f;
-        return;
-    }
     recomp3ds::input_get_right_stick(x_out, y_out);
 }
 
+// Set by the game every frame while the analog camera may turn: the C-Stick
+// then stops pressing C buttons (the desktop drops the right stick's button
+// bindings). While crouching or firing eggs it presses them again.
 extern "C" void recomp_set_right_analog_suppressed(uint8_t* rdram, recomp_context* ctx) {
-    g_right_analog_suppressed = _arg<0, s32>(rdram, ctx) != 0;
+    recomp3ds::input_set_cstick_buttons(_arg<0, s32>(rdram, ctx) == 0);
 }
 
 // The desktop runs its UI's queued callbacks here; the 3DS has none.
