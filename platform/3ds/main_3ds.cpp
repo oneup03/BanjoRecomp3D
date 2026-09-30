@@ -131,6 +131,9 @@ extern "C" {
     void recomp_get_analog_inverted_axes(uint8_t* rdram, recomp_context* ctx);
 }
 
+// RecompiledMods/static_mods.cpp (rt64-3ds tools/mod_bake): the mods built into the executable.
+void recomp_register_static_mods();
+
 int main(int argc, char** argv) {
     (void)argc; (void)argv;
 
@@ -148,16 +151,19 @@ int main(int argc, char** argv) {
     recomputil::register_data_api_exports();
     // Extension data for two object types: Props and ActorMarkers.
     recomputil::init_extended_object_data(2);
+    recomp_register_static_mods();
 
     recomp3ds::GameDesc desc{};
     desc.game_id = u8"BK";
+    // The desktop's version (src/main/main.cpp): mods check it.
+    recomp::Version::from_string("1.0.2", desc.project_version);
     desc.sd_dir = "BanjoRecomp";
     desc.entry = recomp::GameEntry{
         .rom_hash = 0x1B67585D56E07F8CULL,
         .internal_name = "Banjo-Kazooie",
         .display_name = "Banjo-Kazooie",
         .game_id = u8"BK",
-        .mod_game_id = "",                 // no mods on the 3DS yet
+        .mod_game_id = "bk",               // mods baked into the executable (BAKE_MODS)
         // Eep16k rather than Eep4k: room for the note and jinjo saving data.
         .save_type = recomp::SaveType::Eep16k,
         .thumbnail_bytes = {},

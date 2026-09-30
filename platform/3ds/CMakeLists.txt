@@ -15,6 +15,8 @@ set(RT64_3DS_NMR_DIR "${BK_ROOT}/lib/N64ModernRuntime")
 # display-list buffers, the audio heap and the frame buffers: about 4 MB,
 # past rt64-3ds's default heap start. The build checks the link map.
 set(RT64_3DS_HEAP_START 0x80D00000)
+# The runtime's mod system, for mods baked into the executable (below).
+set(RT64_3DS_STATIC_MODS ON)
 add_subdirectory("${RT64_3DS_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/rt64-3ds")
 
 # The generated game code. bk_host_protos.h makes the originals weak so the
@@ -38,6 +40,14 @@ target_include_directories(RecompiledPatches PRIVATE
 target_compile_options(RecompiledPatches PRIVATE
     -O2 -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration)
 
+# Mods baked into the executable: rt64-3ds tools/mod_bake's output for the
+# Makefile's BAKE_MODS (each mod's code, the dispatch table the recompiled
+# functions check, and the registration).
+file(GLOB BAKED_MOD_SOURCES CONFIGURE_DEPENDS "${BK_ROOT}/RecompiledMods/*.c")
+add_library(BakedMods STATIC ${BAKED_MOD_SOURCES} "${BK_ROOT}/RecompiledMods/static_mods.cpp")
+target_link_libraries(BakedMods PRIVATE librecomp ultramodern)
+target_compile_options(BakedMods PRIVATE -O2 -fno-strict-aliasing $<$<COMPILE_LANGUAGE:C>:-w>)
+
 add_executable(BanjoRecompiled3DS
     main_3ds.cpp
     recomp_api_3ds.cpp
@@ -57,7 +67,7 @@ target_compile_options(BanjoRecompiled3DS PRIVATE -O2 -Wno-unused-parameter)
 # The audio microcode runs scalar on the ARM11 and is the hottest file.
 set_source_files_properties("${BK_ROOT}/rsp/n_aspMain.cpp" PROPERTIES COMPILE_OPTIONS "-O3;-fno-strict-aliasing")
 target_link_libraries(BanjoRecompiled3DS PRIVATE
-    recomp_3ds rt64_3ds RecompiledPatches RecompiledFuncs ultramodern librecomp miniz citro3d ctru m)
+    recomp_3ds rt64_3ds RecompiledPatches RecompiledFuncs BakedMods ultramodern librecomp miniz citro3d ctru m)
 target_link_options(BanjoRecompiled3DS PRIVATE "-Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/BanjoRecompiled3DS.map")
 rt64_3ds_check_patch_ram(BanjoRecompiled3DS "${BK_ROOT}/patches/patches.map")
 # Bring-up: accept the display lists and draw nothing.
