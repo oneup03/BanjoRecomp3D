@@ -53,7 +53,8 @@ sdmc:/3ds/BanjoRecomp/
 | Circle Pad | analog stick |
 | C-Stick | C buttons, or the analog camera (Controls settings) |
 
-SELECT opens the settings on the bottom screen.
+SELECT opens the settings on the bottom screen. Some built-in mods change
+what the D-pad and ZL do while they're on: see Mods.
 
 ## Mods
 
@@ -62,27 +63,37 @@ Mods from the Banjo: Recompiled community are built into the executable (the
 from the Mods page of the settings, which also holds their options. Both
 take effect at once, and are kept in `settings.ini`.
 
-| Mod | Author | What it does |
-|---|---|---|
-| Ability Anywhere | ProxySaw | Fly or Shock Jump anywhere, no pad needed: ZL + A (tap A to fly, hold for a Shock Jump) |
-| Cheats | ProxySaw | Moon jump (hold ZL), speed (hold R), infinite health, lives, ammo and air |
-| Exit To Lair | ProxySaw | An Exit to Lair option in the pause menu |
-| Skip It | ProxySaw | Cutscene skips and speed-ups |
-| Toggle Trot | ProxySaw | Talon Trot toggles instead of being held |
-| Transform Anywhere | ProxySaw | Mumbo's transformations anywhere, on the D-pad |
-| Banjo Bee | TSR Stormed | Fly as Banjo Bee: D-pad down turns it on or off, then jump |
-| Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise |
-| Sir Slush Configuration | Thermopolis | Tunes Sir Slush's attacks |
+Buttons below are the 3DS's (the game's own moves keep their usual buttons:
+see Controls).
+
+| Mod | Author | What it does | How to use it |
+|---|---|---|---|
+| Ability Anywhere | ProxySaw | Flight and the Shock Jump without their pads | Standing or walking, hold ZL and press A: tap A to take off, hold A to Shock Jump. With "Require Ability Unlocks" on, only the moves you've learned. |
+| Banjo Bee | TSR Stormed | Fly as Banjo Bee | D-pad down turns bee flight on or off (a message says which); then jump to fly. |
+| Cheats | ProxySaw | Moon jump, extra speed, infinite health, lives, ammo and air | Each is an option. Moon Jump: hold ZL to float up. Speed Modifier: hold R to run faster. The rest need no buttons. |
+| Exit To Lair | ProxySaw | The game's unused "Exit to Lair" pause option | Pause (START) inside a world and choose it. |
+| Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise | Nothing to press; options choose which noises. |
+| Sir Slush Configuration | Thermopolis | Tunes the Freezeezy Peak snowmen's snowballs | Nothing to press; options set their attacks. |
+| Skip It | ProxySaw | Skips cutscenes, text and Bottles' lessons, speeds up Mumbo, boots straight to the file select | Each is an option. "Skip Cutscenes: Press Start" skips a cutscene with START; the rest work by themselves. |
+| Toggle Trot | ProxySaw | Talon Trot stays on without holding Z | Start Talon Trot as usual (hold L, press C-Left), let go and keep trotting; press L again to stop. |
+| Transform Anywhere | ProxySaw | Mumbo's transformations anywhere | D-pad up: washing machine. Down: crocodile, then walrus. Left: bee. Right: termite, then pumpkin. Pressing a direction again moves to its next form, then back to Banjo. "Token Payment" (on at first) allows only the forms you've paid Mumbo's tokens for; turn it off for all of them. "Allowed Transformations: Current World" gives only D-pad up, for the world you're in. "Button Mode: L + D-pad" needs ZL held with the D-pad. |
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
 
-Some mods read N64 buttons Banjo's controls otherwise leave out, and while
-one of them is on the buttons change: the D-pad becomes the N64 D-pad (down
-only for Banjo Bee, all four directions for Transform Anywhere), and ZL
-becomes the N64 L button (Ability Anywhere, Cheats, and Transform Anywhere's
-"L + D-pad" mode). The C buttons stay on X, Y, ZR and the C-Stick. An Old 3DS
-has no ZL, ZR or C-Stick: there the ZL mods can't be used, and the camera
-can't turn with the C buttons while Transform Anywhere is on.
+Some mods read N64 buttons Banjo's controls otherwise leave out (the D-pad
+doubles the C buttons, and L is Z), so while one of them is on the buttons
+change. The changes add up when several are on:
+
+| Mod on | D-pad | ZL | C-Left is on |
+|---|---|---|---|
+| Banjo Bee | down is the N64 D-pad's down (C-Down stays on Y) | C-Left | ZL, D-pad left, C-Stick |
+| Ability Anywhere, Cheats | C buttons | N64 L | D-pad left, C-Stick |
+| Transform Anywhere | the N64 D-pad | N64 L | C-Stick |
+
+C-Up stays on X, C-Down on Y and C-Right on ZR throughout. An Old 3DS has no
+ZL, ZR or C-Stick: there the ZL moves can't be made, and with Transform
+Anywhere on the C-Left and C-Right buttons are gone (camera turning, Talon
+Trot).
 
 In a game mode, Exit to Lair stays off and isn't listed: it returns to the
 original game's lair entrances, which the game modes rework. It stays on for
