@@ -11,9 +11,7 @@ set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
 tool=${1:?RecompModTool}; out=${2:?out dir}
-# Calls to undeclared functions are errors from clang 16 on; mods written
-# with an older one (InstantFFM) compile as they did for their authors.
-cc="${3:-clang} -Wno-error=implicit-function-declaration"; ld=${4:-ld.lld}
+cc=${3:-clang}; ld=${4:-ld.lld}
 work=$root/build-mods
 mkdir -p "$work" "$out"
 rm -f "$out"/*.nrm

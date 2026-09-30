@@ -28,10 +28,6 @@
 	path = platform/3ds/mods/BanjoRecompMapSelect
 	url = https://github.com/TSRStormed/BanjoRecompMapSelect.git
 	update = none
-[submodule "platform/3ds/mods/InstantFFMMod"]
-	path = platform/3ds/mods/InstantFFMMod
-	url = https://github.com/TSRStormed/InstantFFMMod.git
-	update = none
 [submodule "platform/3ds/mods/BanjoBeeMod"]
 	path = platform/3ds/mods/BanjoBeeMod
 	url = https://github.com/TSRStormed/BanjoBeeMod.git

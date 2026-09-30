@@ -72,17 +72,15 @@ a mod on or off takes effect at the next start; options apply at once.
 | Transform Anywhere | ProxySaw | Mumbo's transformations anywhere |
 | Always High Poly Banjo | TSR Stormed | Always the high-poly Banjo model |
 | Banjo Bee | TSR Stormed | Fly as Banjo Bee |
-| Instant FFM | TSR Stormed | "No FFM setup required!" |
 | Map Select | TSR Stormed | Warp to any map (opens with the N64 D-pad, which the 3DS does not map yet) |
 | Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise |
 | Sir Slush Configuration | Thermopolis | Tunes Sir Slush's attacks |
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
 
-In a game mode, Instant FFM, Map Select and Exit to Lair stay off and aren't
-listed: Instant FFM changes the same function the game modes do (a game mode
-would not start with it), and the other two are built around the original
-game's maps. They stay on for the game itself if you turned them on.
+In a game mode, Map Select and Exit to Lair stay off and aren't listed: both
+are built around the original game's maps. They stay on for the game itself
+if you turned them on.
 
 ## Game modes
 

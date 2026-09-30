@@ -51,13 +51,12 @@ const MenuOption kOptions[] = {
 };
 
 // Built-in mods left out of the game modes (and off their Mods page):
-// - Instant FFM replaces __overlay_lair_release, which all three game modes
-//   replace too: with it on, no game mode would load.
 // - Map Select warps to the original game's maps, which the hacks reuse
 //   for their own.
 // - Exit to Lair returns to the original game's lair entrances, which the
 //   hacks rework (Nostalgia 64 replaces 60-odd of the lair's warps).
-const char* const kModsNotInGameModes[] = { "bk_recomp_mod_instant_ffm", "bk_recomp_mod_map_select", "ProxyMM_ExitToLair" };
+// None replaces a function a game mode replaces (a mode would fail to load).
+const char* const kModsNotInGameModes[] = { "bk_recomp_mod_map_select", "ProxyMM_ExitToLair" };
 
 // Defaults for the library's rows; settings.ini, once written, keeps what the
 // player chose.
