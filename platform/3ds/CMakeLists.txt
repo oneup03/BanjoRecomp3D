@@ -17,7 +17,25 @@ set(RT64_3DS_NMR_DIR "${BK_ROOT}/lib/N64ModernRuntime")
 set(RT64_3DS_HEAP_START 0x80D00000)
 # The runtime's mod system, for mods baked into the executable (below).
 set(RT64_3DS_STATIC_MODS ON)
+# 32-bit N64 registers (N64Recomp's recomp.h, RECOMP_GPR32): the ARM11's own
+# width, so each register operation in the recompiled code is one instruction
+# instead of two. The game's only 64-bit register code (three hand-written
+# core1 functions) is stubbed in the 3DS recompilation and replaced by
+# patches/gpr32_patches.c (Makefile: GPR32_STUBS). Everything that sees
+# recomp_context must agree, the baked mods included (compiled here, so the
+# context layout stays in step), hence the whole build;
+# rt64_3ds_check_gpr32 below fails the configure step should the generated
+# code ever gain such an instruction.
+# BK_3DS_GPR32=OFF builds with 64-bit registers (the stubs and the patches'
+# 32-bit versions stay; they work either way), for comparison.
+option(BK_3DS_GPR32 "32-bit N64 registers (RECOMP_GPR32)" ON)
+if(BK_3DS_GPR32)
+    add_compile_definitions(RECOMP_GPR32=1)
+endif()
 add_subdirectory("${RT64_3DS_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/rt64-3ds")
+if(BK_3DS_GPR32)
+    rt64_3ds_check_gpr32("${BK_ROOT}/RecompiledFuncs" "${BK_ROOT}/RecompiledPatches" "${BK_ROOT}/RecompiledMods")
+endif()
 
 # The generated game code. bk_host_protos.h makes the originals weak so the
 # patched functions in RecompiledPatches replace them (GCC's RECOMP_FUNC is

@@ -54,6 +54,11 @@ host-tools:
 	g++ -std=c++17 -O2 -o $(HOST)/file_to_c $(ROOT)/lib/rt64/src/tools/file_to_c/file_to_c.cpp
 	HOST=$(HOST) OUT=$(HOST)/mod_bake $(RT64_3DS)/tools/mod_bake/build.sh $(ROOT)
 
+# The game's functions that hold 64-bit values in registers, stubbed in the
+# 3DS recompilation: patches/gpr32_patches.c replaces them with 32-bit code,
+# so the build can use 32-bit registers (CMakeLists.txt, RECOMP_GPR32).
+GPR32_STUBS := "func_80253010", "func_80253034", "func_8025C29C",
+
 # The patches' ELF comes first: mod_bake reads which game functions they
 # replace. The game's and the patches' recompilations then run on copies of
 # their configs with mod_bake's hooks appended (a dispatch check at the entry
@@ -62,7 +67,7 @@ codegen:
 	cd $(ROOT) && { [ -e $(DECOMP_ROM) ] || ln -s decompressed.us.v10.z64 $(DECOMP_ROM); }
 	$(MAKE) patches-elf code-mods game-modes
 	$(MAKE) mods
-	cd $(ROOT) && cat banjo.us.rev0.toml $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
+	cd $(ROOT) && sed '/^stubs = \[/a\    $(GPR32_STUBS)' banjo.us.rev0.toml | cat - $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
 	cd $(ROOT) && $(HOST)/RSPRecomp n_aspMain.us.rev0.toml
 	$(MAKE) patches-recomp
 
