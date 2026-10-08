@@ -278,6 +278,21 @@ int main(int argc, char** argv) {
     desc.render.autoconv.ease_out = 0.08f;
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (rt64-3ds naudio_hle.cpp)
     desc.audio_hle_variant = recomp3ds::NaudioVariant::BanjoKazooie;   // no phase-inverted voices in this build
+    // The Audio engine row's DSP mode (rt64-3ds dsp_synth.h): the voices
+    // play on DSP channels, as banjo.us.rev0.toml's n_alSyn* hooks report
+    // them, and the audio task is skipped. Rare's N_ALSynth has player
+    // slots before the stock fields (each 0xC later): its clock at
+    // +0x28/+0x2C, its free updates at +0x38, its lame voices at +0x20, its
+    // aux bus at +0x40; n_syn (the synthesizer's pointer) at 0x80276E84.
+    // banjo.us.rev0.toml's n_alAudioFrame hook at 0x8025C974 then skips the
+    // command list the skipped task would have run.
+    desc.synth = recomp3ds::SynthFlavor::NAudio;
+    desc.synth.synth_global = 0x80276E84;
+    desc.synth.param_samples = 0x28;
+    desc.synth.cur_samples = 0x2C;
+    desc.synth.aux_bus = 0x40;
+    desc.synth.param_list = 0x38;
+    desc.synth.lame_list = 0x20;
     for (int d = 0; d < 3; d++) {
         for (int l = 0; l < 2; l++) build_buttons(g_buttons[d][l], (DpadUse)d, l != 0);
     }
