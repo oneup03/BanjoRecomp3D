@@ -124,6 +124,21 @@ another version than the one above. The first start of a mode writes its
 ROM (64 MB) to `sdmc:/3ds/BanjoRecomp/modes/`, which takes about 10 seconds
 in the emulator; each mode keeps its own saves.
 
+## Testing the Old 3DS on a New 3DS
+
+Two rows on the settings menu's Game page (SELECT; scroll down to the last
+rows) give a New 3DS most of an Old 3DS's limits:
+- **CPU speed**: Old runs at 268 MHz without the L2 cache. It applies at
+  once.
+- **Cores (at restart)**: the two-core layouts an Old 3DS has. "2, game on
+  0" is what an Old 3DS gets for this game: the game and the reading of
+  each display list on core 0, the drawing and audio on core 1. "2, game on
+  1" swaps the cores, for comparison. Both leave the in-between builder off.
+  Restart the game after changing it.
+
+The console still has its extra cores and more memory, so it runs a little
+better than a real Old 3DS would.
+
 ## Building
 
 ```

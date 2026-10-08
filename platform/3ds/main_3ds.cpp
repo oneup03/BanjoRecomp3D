@@ -276,6 +276,30 @@ int main(int argc, char** argv) {
     desc.render.autoconv.cut_ratio = 1.8f;
     desc.render.autoconv.ease_in = 0.25f;
     desc.render.autoconv.ease_out = 0.08f;
+    // The patches tag the cameras, models and bones for RT64's high frame
+    // rate (transform_tagging.c): offer "60 interp." on the Frame rate row,
+    // interpolated frames between each two of the game's: one while it runs
+    // at 30, two (at 1/3 and 2/3) in the cutscenes at 20. Frames that render
+    // to a texture (the jiggy transition, the puzzles) go without. The
+    // in-betweens draw into eye targets of their own (double_eyes, 1500 KB of
+    // VRAM: RGBA8 and D24S8) so the game's frame of each pair is recorded
+    // while the GPU still draws its in-betweens. settings.ini's
+    // gpu_double_eyes switches it.
+    desc.render.frame_interpolation = true;
+    desc.render.double_eyes = true;
+    // The game's frame limiter waits for the last list to be drawn (the RDP's
+    // completion) every frame: it hears that once the renderer has read the
+    // list, not after the renderer's waits for the screen, which would make
+    // it miss retraces (and its cutscenes fall behind the music).
+    desc.render.early_drawn = true;
+    // The GPU's fill is the limit in the busiest levels (Treasure Trove Cove:
+    // about 5 screens of fragments an eye, 10 ms an eye): 16-bit eye depth,
+    // I/IA textures as LA8, and the frame's leading full-screen fill (Banjo
+    // starts every frame with one) turned into the eyes' clear. Same pictures.
+    // settings.ini's gpu_depth16, gpu_textures16, gpu_fill_clear switch them.
+    desc.render.eye_depth16 = true;
+    desc.render.intensity_textures16 = true;
+    desc.render.fill_clear = true;
     desc.audio_hle = true;      // n_aspMain interpreted on the CPU (rt64-3ds naudio_hle.cpp)
     desc.audio_hle_variant = recomp3ds::NaudioVariant::BanjoKazooie;   // no phase-inverted voices in this build
     // The Audio engine row's DSP mode (rt64-3ds dsp_synth.h): the voices
@@ -293,6 +317,18 @@ int main(int argc, char** argv) {
     desc.synth.aux_bus = 0x40;
     desc.synth.param_list = 0x38;
     desc.synth.lame_list = 0x20;
+    // With two cores (an Old 3DS) the game takes core 0, which the
+    // application has whole, and the renderer and audio core 1's 80%: at the
+    // Old clock the game's own work filled core 1 (13-20 lists a second
+    // against the 30 asked) while core 0 sat about 55% busy. The Cores row's
+    // "2, game on 1" is the other layout, for comparison.
+    desc.two_cores_game_on_core0 = true;
+    // game_draw waits on "parsed" every frame, so core 0 sits idle while
+    // core 1 reads the list (26 ms there against about 21 on core 0): the
+    // read goes to core 0, and the triangles' output and the drawing stay on
+    // core 1. At the Old clock, over the attract demos: 17.94 lists a second
+    // without it, 19.40 with it.
+    desc.two_cores_read_on_game_core = true;
     for (int d = 0; d < 3; d++) {
         for (int l = 0; l < 2; l++) build_buttons(g_buttons[d][l], (DpadUse)d, l != 0);
     }

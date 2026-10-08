@@ -1,0 +1,35 @@
+# Load slot 1 into its level and play at the game's 30 fps: walk, turn the
+# camera, jump, pause (the pause background is a snapshot), unpause. Slot 1
+# must hold a save in a level (outside Banjo's house in Spiral Mountain
+# works). With game modes on the SD card, the first A takes the game from the
+# picker; without, the title ignores it. Frames are 30 a second of wall
+# time: the script takes three minutes (azahar-run.sh -t 210).
+60 2 A
+1140 2 START
+1560 2 START
+1920 2 A
+2160 2 A
+2460 2 A
+2760 2 A
+3300 SHOT standing
+3360 150 STICK_DOWN
+3520 SHOT walking
+3540 90 ZL
+3640 SHOT turned
+3700 4 A
+3716 SHOT jump
+3760 120 STICK_LEFT
+3890 SHOT left
+3900 90 ZR
+4000 120 STICK_UP
+4130 SHOT up
+4140 2 A
+4150 100 STICK_RIGHT
+4260 SHOT right
+4300 600 STICK_DOWN
+4600 SHOT run
+4920 2 START
+5040 SHOT pause
+5160 2 START
+5280 SHOT unpaused
+5400 EXIT
