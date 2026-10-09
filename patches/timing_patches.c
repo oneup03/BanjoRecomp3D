@@ -115,9 +115,61 @@ RECOMP_PATCH s32 viMgr_func_8024BFA0() {
     return D_802808DC + extraVis;
 }
 
+#ifdef BK_3DS
+extern u32 D_80280724;
+
+// @recomp (3DS) A frame measures at least the retraces it asked for, as on the
+// N64. The retraces since the last frame (D_80280724, which becomes
+// time_getDeltaReal_frames and time_getDelta) are counted by the VI manager
+// thread, and after a swap viMgr_func_8024BFD8 waits until the swap shows. On
+// the N64 the retrace that shows it is counted first. The runtime's VI thread
+// shows it at the retrace, but the VI manager counts that retrace only when the
+// game next waits on a message: the wait can find the swap shown and stop with
+// it uncounted, and the frame measures one retrace short (and the next one
+// long). Code that scales by the measured rate jumps for that frame: a Yum-Yum's
+// hop (chClam) takes a 30 fps frame measured at 60 for twice its speed, and the
+// camera (dynamicCamera) runs its smoothing loops per measured retrace. The
+// 3DS's busy cores, more so with frame interpolation, make it frequent. A short
+// frame is raised to what it asked for and the next long one gives the retrace
+// back, so the game's time still keeps to the clock.
+static s32 bk3ds_retrace_debt = 0;
+static s32 bk3ds_frames = 0, bk3ds_short_frames = 0;
+
+static void bk3ds_settle_frame_retraces(s32 asked) {
+    s32 measured = (s32)D_80280724;
+    bk3ds_frames++;
+    if (measured < asked) {
+        bk3ds_retrace_debt += asked - measured;
+        if (bk3ds_retrace_debt > 4) bk3ds_retrace_debt = 4;
+        measured = asked;
+        bk3ds_short_frames++;
+    }
+    else if (bk3ds_retrace_debt > 0 && measured > asked) {
+        s32 back = measured - asked;
+        if (back > bk3ds_retrace_debt) back = bk3ds_retrace_debt;
+        measured -= back;
+        bk3ds_retrace_debt -= back;
+    }
+    D_80280724 = (u32)measured;
+    if (bk3ds_frames >= 1800) {
+        if (bk3ds_short_frames != 0) {
+            recomp_printf("bk3ds: %d of the last %d frames measured fewer retraces than they asked for (raised)\n", bk3ds_short_frames, bk3ds_frames);
+        }
+        bk3ds_frames = 0;
+        bk3ds_short_frames = 0;
+    }
+}
+#endif
+
 // @recomp Patched to clear lag overrides after viMgr_func_8024BFD8.
 RECOMP_PATCH void viMgr_func_8024C1B4(void){
+#ifdef BK_3DS
+    s32 asked = viMgr_func_8024BFA0();
+#endif
     viMgr_func_8024BFD8(0);
+#ifdef BK_3DS
+    bk3ds_settle_frame_retraces(asked);
+#endif
     // @recomp Clear the demo frame divisor.
     demo_frame_divisor = -1;
     dummy_func_8025AFB8();
@@ -127,7 +179,13 @@ RECOMP_PATCH void viMgr_func_8024C1B4(void){
 
 // @recomp Patched to clear lag overrides after viMgr_func_8024BFD8.
 RECOMP_PATCH void viMgr_func_8024C1DC(void){
+#ifdef BK_3DS
+    s32 asked = viMgr_func_8024BFA0();
+#endif
     viMgr_func_8024BFD8(1);
+#ifdef BK_3DS
+    bk3ds_settle_frame_retraces(asked);
+#endif
     // @recomp Clear the demo frame divisor.
     demo_frame_divisor = -1;
     // @recomp Clear the lag override for cutscenes.
