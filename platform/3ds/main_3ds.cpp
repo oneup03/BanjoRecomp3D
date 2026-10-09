@@ -127,6 +127,9 @@ const MenuDefault kDefaults[] = {
     { "stereo_ghost_contrast", 100 },   // percent: 100 is ghost reduction off
     { "stick_deadzone", 15 },           // percent
     { "cstick_deadzone", 20 },          // percent
+    // C-Up is Banjo's first-person view: a nudge of the C-Stick shouldn't
+    // enter it (X and D-pad up still press C-Up).
+    { "cstick_up", 0 },
     // "60 interp." on a New 3DS; an Old 3DS starts at the game's own rate
     // instead (GameDesc::old3ds_frame_cap below), its cores having no room
     // for in-betweens.

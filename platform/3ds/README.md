@@ -51,7 +51,7 @@ sdmc:/3ds/BanjoRecomp/
 | ZL, D-pad left | C-Left |
 | ZR, D-pad right | C-Right |
 | Circle Pad | analog stick |
-| C-Stick | C buttons, or the analog camera (Controls settings) |
+| C-Stick | C buttons, but not C-Up (first person) unless "C-Stick up" is on; or the analog camera (Controls settings) |
 
 SELECT opens the settings on the bottom screen. Some built-in mods add
 buttons on the touch screen while they're on: see Mods.
