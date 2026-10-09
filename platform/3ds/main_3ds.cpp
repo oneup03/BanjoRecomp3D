@@ -124,9 +124,13 @@ const char* const kModsNotInGameModes[] = { "ProxyMM_ExitToLair" };
 const MenuDefault kDefaults[] = {
     { "separation", 50 },               // 3D depth
     { "convergence_tenths", 100 },      // 10.0
-    { "stereo_ghost_contrast", 80 },    // percent
+    { "stereo_ghost_contrast", 100 },   // percent: 100 is ghost reduction off
     { "stick_deadzone", 15 },           // percent
     { "cstick_deadzone", 20 },          // percent
+    // "60 interp." on a New 3DS; an Old 3DS starts at the game's own rate
+    // instead (GameDesc::old3ds_frame_cap below), its cores having no room
+    // for in-betweens.
+    { "frame_cap", 2 },
 };
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
@@ -338,6 +342,8 @@ int main(int argc, char** argv) {
     desc.menu_option_count = sizeof(kOptions) / sizeof(kOptions[0]);
     desc.menu_defaults = kDefaults;
     desc.menu_default_count = sizeof(kDefaults) / sizeof(kDefaults[0]);
+    // On an Old 3DS the "60 interp." default becomes the game's own rate.
+    desc.old3ds_frame_cap = 0;
 #ifdef BK_NULL_RENDERER
     desc.null_renderer = true;
 #endif
