@@ -95,7 +95,7 @@ if(BK_NULL_RENDERER)
 endif()
 
 set(BK_TITLE "Banjo: Recompiled")
-set(BK_DESCRIPTION "Banjo-Kazooie Recompiled for New 3DS")
+set(BK_DESCRIPTION "Banjo-Kazooie Recompiled 3D")
 add_3dsx(BanjoRecompiled3DS TITLE "${BK_TITLE}" DESCRIPTION "${BK_DESCRIPTION}"
          ICON "${CMAKE_CURRENT_LIST_DIR}/icon.png")
 include("${RT64_3DS_DIR}/cmake/Cia.cmake")
