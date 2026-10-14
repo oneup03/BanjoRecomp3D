@@ -4,13 +4,13 @@ Banjo: Recompiled for the New Nintendo 3DS and New 2DS XL, with
 stereoscopic 3D. The renderer and platform layer are
 [rt64-3ds](https://github.com/oneup03/rt64-3ds) (`lib/rt64-3ds`).
 
-Status: the game plays at its full frame rate (30 fps) with stereo 3D,
-audio, the settings menu, the built-in mods and the three game modes in the
-Azahar emulator. On a New 3DS it has been played through the intro and into
-the game; the mods and game modes are so far checked in the emulator only.
-In the emulator's Old 3DS mode the intro and the game modes' title and file
-screens run at the rate the game asks for (20 or 30 fps), with the ROM read
-from the SD card; levels there, and a real Old 3DS, are untested.
+Status: the game plays at its full frame rate with stereo 3D, audio, the
+settings menu, the built-in mods and the three game modes. On a New 3DS it
+has been played for hours, levels and a game mode (Jiggies of Time)
+included, with the interpolated 60 fps mode below. At the Old 3DS clock
+with two cores (the Game page's CPU speed and Cores rows on a New 3DS) it
+runs at about 16-19 frames a second where it asks for 20 or 30, with the
+ROM read from the SD card; a real Old 3DS is untested.
 
 ## Installing
 
@@ -30,7 +30,7 @@ sdmc:/3ds/BanjoRecomp/
   BanjoRecomp.3dsx   the program (not needed with the CIA installed)
   BK.z64             your ROM
   mods/              game modes' .nrm files (see "Game modes")
-  modes/             the game modes' ROMs, made on their first start
+  modes/             the game modes' ROMs, made on a PC (see "Game modes")
   saves/             saves; a game mode keeps its own in saves/<mod id>/
   mod_config/        the built-in mods' options
   mods.json          which built-in mods are on
@@ -55,6 +55,21 @@ sdmc:/3ds/BanjoRecomp/
 
 SELECT opens the settings on the bottom screen. Some built-in mods add
 buttons on the touch screen while they're on: see Mods.
+
+## Performance
+
+A New 3DS runs the game at its full frame rate (30 fps in play, 20 in many
+cutscenes) and, by default, draws interpolated frames between each two of
+the game's (the Game page's Frame rate: 60 interp.): one while the game
+runs at 30, two in the cutscenes at 20. A scene too heavy to draw twice in
+time drops back to the game's rate until it fits again, and frames that
+render into a texture (the jiggy transition, the picture puzzles) go
+without. An Old 3DS defaults to the game's own frame rate, as it can't
+afford the frames in between.
+
+The `stats:` line in `log.txt` says how many frames were shown and why
+lists went without an in-between; see "Testing the Old 3DS on a New 3DS"
+below for the rows that mimic an Old 3DS.
 
 ## Mods
 
@@ -117,12 +132,26 @@ hack itself comes from the mod's file, which you download:
 | Banjo Dreamie | 1.3.2 | [Loggo/Banjo_Dreamie](https://thunderstore.io/c/banjo-recompiled/p/Loggo/Banjo_Dreamie/) |
 
 Take the `.nrm` out of the package (a zip) and copy it to
-`sdmc:/3ds/BanjoRecomp/mods/`. With one there, a menu at start offers the
-game and each game mode. A mode that can't be played is listed in red with
-the reason: the file it needs, or the version it needs when the file is
-another version than the one above. The first start of a mode writes its
-ROM (64 MB) to `sdmc:/3ds/BanjoRecomp/modes/`, which takes about 10 seconds
-in the emulator; each mode keeps its own saves.
+`sdmc:/3ds/BanjoRecomp/mods/`. Each mode also needs its ROM (64 MB), made
+on a PC from your `BK.z64` and the `.nrm` with
+[`make_game_mode_rom.py`](https://github.com/oneup03/rt64-3ds/blob/main/tools/make_game_mode_rom.py)
+(Python 3, nothing else to install; `lib/rt64-3ds/tools/` in this
+repository):
+
+```
+python3 make_game_mode_rom.py BK.z64 bk_jiggies_of_time.nrm bk_nostalgia_64.nrm Loggo_BanjoDreamie.nrm
+```
+
+It writes a `modes` folder (each ROM with a small `.ok` file): copy it to
+`sdmc:/3ds/BanjoRecomp/modes/`. Run it again after updating a mode's
+`.nrm`. The console doesn't make these itself: the patch alone is more than
+an Old 3DS has memory for.
+
+With a mode's `.nrm` there, a menu at start offers the game and each game
+mode. A mode that can't be played is listed in red with the reason: the
+file it needs, the version it needs when the file is another version than
+the one above, or its ROM missing or made from another `.nrm`. Each mode
+keeps its own saves.
 
 ## Testing the Old 3DS on a New 3DS
 
