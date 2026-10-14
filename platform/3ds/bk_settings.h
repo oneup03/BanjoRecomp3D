@@ -19,5 +19,7 @@ extern int g_bk_camera_invert;
 extern int g_bk_first_person_invert;
 extern int g_bk_fly_swim_invert;
 extern int g_bk_bgm_volume;
+// Particles: 0 full, 1 half, 2 quarter (the divisor is 1 << value).
+extern int g_bk_particles;
 
 #endif

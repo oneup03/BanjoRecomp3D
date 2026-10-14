@@ -31,11 +31,11 @@ MODS_OUT   := $(ROOT)/RecompiledMods
 MODS_NRM   := $(ROOT)/build-mods/nrm
 GAME_MODES := $(ROOT)/build-mods/gamemodes
 # Mods built into the executable (rt64-3ds tools/mod_bake): .nrm files, each
-# with ":embed" to carry the file itself too (code mods; a game mode's comes
-# from the SD card, with the ROM patch). By default the code mods of
+# with ":embed" to carry the file itself too, bar a game mode's patch.bps
+# (the player makes that mode's ROM on a PC). By default the code mods of
 # mods.list, built from source by `code-mods`, and the game modes
 # `game-modes` fetches. Changing it needs `codegen`.
-BAKE_MODS  ?= $(addsuffix :embed,$(sort $(wildcard $(MODS_NRM)/*.nrm))) $(sort $(wildcard $(GAME_MODES)/*.nrm))
+BAKE_MODS  ?= $(addsuffix :embed,$(sort $(wildcard $(MODS_NRM)/*.nrm)) $(sort $(wildcard $(GAME_MODES)/*.nrm)))
 
 # devkitPro's own pacman installs to /opt/devkitpro (3ds-dev group).
 export DEVKITPRO ?= /opt/devkitpro

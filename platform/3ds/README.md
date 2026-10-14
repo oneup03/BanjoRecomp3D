@@ -8,7 +8,7 @@ Status: the game plays at its full frame rate with stereo 3D, audio, the
 settings menu, the built-in mods and the three game modes. On a New 3DS it
 has been played for hours, levels and a game mode (Jiggies of Time)
 included, with the interpolated 60 fps mode below. At the Old 3DS clock
-with two cores (the Game page's CPU speed and Cores rows on a New 3DS) it
+with two cores (`dbg_old_clock` and `dbg_cores` in `settings.ini` on a New 3DS) it
 runs at about 16-19 frames a second where it asks for 20 or 30, with the
 ROM read from the SD card; a real Old 3DS is untested.
 
@@ -29,12 +29,9 @@ What the folder holds once the game has run:
 sdmc:/3ds/BanjoRecomp/
   BanjoRecomp.3dsx   the program (not needed with the CIA installed)
   BK.z64             your ROM
-  mods/              game modes' .nrm files (see "Game modes")
-  modes/             the game modes' ROMs, made on a PC (see "Game modes")
+  mods/              game modes' ROMs, made on a PC (see "Game modes")
   saves/             saves; a game mode keeps its own in saves/<mod id>/
-  mod_config/        the built-in mods' options
-  mods.json          which built-in mods are on
-  settings.ini       the settings (once one is changed)
+  settings.ini       the settings, the built-in mods' included (once one is changed)
   log.txt            the last run's log, useful in a bug report
 ```
 
@@ -70,6 +67,14 @@ afford the frames in between.
 The `stats:` line in `log.txt` says how many frames were shown and why
 lists went without an in-between; see "Testing the Old 3DS on a New 3DS"
 below for the rows that mimic an Old 3DS.
+
+The Game page's **Particles** row (Full, Half, Quarter; an Old 3DS starts
+at Quarter) scales down what the particle emitters put out. Each particle is
+a draw of its own, with its own sprite frame and colour, so the renderer's
+cost per particle is a draw's: in a capture of a jiggy's sparkles, 225 of
+the frame's 360 draws were sparkles. Half divides every burst by two and
+halves the timed emitters' rate; nothing is switched off, since effects end
+when their particles run out.
 
 ## Mods
 
@@ -122,8 +127,8 @@ the game itself if you turned it on.
 
 ## Game modes
 
-Three ROM hacks can be played as game modes. Their code is built in; the
-hack itself comes from the mod's file, which you download:
+Three ROM hacks can be played as game modes. Their code is built in; each
+needs its ROM, which you make on a PC from your `BK.z64` and the mod's file:
 
 | Game mode | Version | Thunderstore package |
 |---|---|---|
@@ -131,39 +136,36 @@ hack itself comes from the mod's file, which you download:
 | BK Nostalgia 64 | 1.0.1 | [KurkoMods/BK_Nostalgia_64](https://thunderstore.io/c/banjo-recompiled/p/KurkoMods/BK_Nostalgia_64/) |
 | Banjo Dreamie | 1.3.2 | [Loggo/Banjo_Dreamie](https://thunderstore.io/c/banjo-recompiled/p/Loggo/Banjo_Dreamie/) |
 
-Take the `.nrm` out of the package (a zip) and copy it to
-`sdmc:/3ds/BanjoRecomp/mods/`. Each mode also needs its ROM (64 MB), made
-on a PC from your `BK.z64` and the `.nrm` with
-[`make_game_mode_rom.py`](https://github.com/oneup03/rt64-3ds/blob/main/tools/make_game_mode_rom.py)
-(Python 3, nothing else to install; `lib/rt64-3ds/tools/` in this
+Take the `.nrm` out of the package (a zip) and run
+[`make_game_mod_rom.py`](https://github.com/oneup03/rt64-3ds/blob/main/tools/make_game_mod_rom.py)
+on it (Python 3, nothing else to install; `lib/rt64-3ds/tools/` in this
 repository):
 
 ```
-python3 make_game_mode_rom.py BK.z64 bk_jiggies_of_time.nrm bk_nostalgia_64.nrm Loggo_BanjoDreamie.nrm
+python3 make_game_mod_rom.py BK.z64 bk_jiggies_of_time.nrm bk_nostalgia_64.nrm Loggo_BanjoDreamie.nrm
 ```
 
-It writes a `modes` folder (each ROM with a small `.ok` file): copy it to
-`sdmc:/3ds/BanjoRecomp/modes/`. Run it again after updating a mode's
-`.nrm`. The console doesn't make these itself: the patch alone is more than
-an Old 3DS has memory for.
+It writes a `mods` folder with each mode's ROM (64 MB) and a small `.ok`
+file beside it: copy both into `sdmc:/3ds/BanjoRecomp/mods/`. The `.nrm`
+itself isn't needed on the SD card. Use the versions above: a ROM made from
+another version is refused. The console doesn't make these itself: the
+patch alone is more than an Old 3DS has memory for.
 
-With a mode's `.nrm` there, a menu at start offers the game and each game
-mode. A mode that can't be played is listed in red with the reason: the
-file it needs, the version it needs when the file is another version than
-the one above, or its ROM missing or made from another `.nrm`. Each mode
-keeps its own saves.
+With a mode's ROM there, a menu at start offers the game and each game
+mode. A mode that can't be played is listed in red with the reason: its ROM
+missing, made from another version, or incomplete. Each mode keeps its own
+saves.
 
 ## Testing the Old 3DS on a New 3DS
 
-Two rows on the settings menu's Game page (SELECT; scroll down to the last
-rows) give a New 3DS most of an Old 3DS's limits:
-- **CPU speed**: Old runs at 268 MHz without the L2 cache. It applies at
-  once.
-- **Cores (at restart)**: the two-core layouts an Old 3DS has. "2, game on
-  0" is what an Old 3DS gets for this game: the game and the reading of
-  each display list on core 0, the drawing and audio on core 1. "2, game on
-  1" swaps the cores, for comparison. Both leave the in-between builder off.
-  Restart the game after changing it.
+Two keys in `settings.ini` (beside the executable; not on the menu) give a
+New 3DS most of an Old 3DS's limits:
+- `dbg_old_clock=1`: 268 MHz without the L2 cache, applied at start.
+- `dbg_cores`: the two-core layouts an Old 3DS has, read at start. `2`
+  ("2, game on 0") is what an Old 3DS gets for this game: the game and the
+  reading of each display list on core 0, the drawing and audio on core 1.
+  `1` ("2, game on 1") swaps the cores, for comparison. Both leave the
+  in-between builder off.
 
 The console still has its extra cores and more memory, so it runs a little
 better than a real Old 3DS would.

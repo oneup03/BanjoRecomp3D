@@ -50,6 +50,7 @@ int g_bk_camera_invert = 1;             // Invert X: the original game's third-p
 int g_bk_first_person_invert = 2;       // Invert Y: the original game's
 int g_bk_fly_swim_invert = 2;           // Invert Y: the original game's
 int g_bk_bgm_volume = 100;              // percent
+int g_bk_particles = 0;                 // 0 full, 1 half, 2 quarter (an Old 3DS starts at quarter)
 
 extern "C" void recomp_update_inputs(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram; (void)ctx;
@@ -182,6 +183,14 @@ extern "C" void recomp_get_analog_cam_enabled(uint8_t* rdram, recomp_context* ct
 extern "C" void recomp_get_note_saving_enabled(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram;
     _return<s32>(ctx, g_bk_note_saving == BK_SAVING_NOTES || g_bk_note_saving == BK_SAVING_BOTH);
+}
+
+// patches/particle_patches.c: what the emitters' counts are divided by and
+// their spawn intervals multiplied by (the Particles row).
+extern "C" void recomp_get_particle_divisor(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram;
+    const int level = g_bk_particles < 0 ? 0 : g_bk_particles > 2 ? 2 : g_bk_particles;
+    _return<s32>(ctx, 1 << level);
 }
 
 extern "C" void recomp_get_jinjo_saving_enabled(uint8_t* rdram, recomp_context* ctx) {

@@ -99,6 +99,7 @@ void mod_switched(const char*, bool) {
 const char* const kSavingNames[] = { "Off", "Notes", "Jinjos", "Both" };
 const char* const kInvertNames[] = { "None", "X", "Y", "Both" };
 const char* const kOffOnNames[] = { "Off", "On" };
+const char* const kParticleNames[] = { "Full", "Half", "Quarter" };
 // The desktop's options on the 3DS menu's pages, with the desktop's defaults.
 const MenuOption kOptions[] = {
     // The game turns the C-Stick's C buttons off itself while the analog
@@ -111,6 +112,10 @@ const MenuOption kOptions[] = {
     { "fly_swim_invert", "Invert flying & swimming", 0, 3, &g_bk_fly_swim_invert, kInvertNames, nullptr, PageControls },
     { "note_saving", "Note & Jinjo saving", 0, 3, &g_bk_note_saving, kSavingNames, nullptr, PageGame },
     { "bgm_volume", "Music volume", 0, 100, &g_bk_bgm_volume, nullptr, nullptr, PageGame, 5, "%" },
+    // Particle emission divided by 1, 2 or 4 (patches/particle_patches.c):
+    // each particle is a draw of its own, which an Old 3DS can't afford by
+    // the hundred.
+    { "particles", "Particles", 0, 2, &g_bk_particles, kParticleNames, nullptr, PageGame },
 };
 
 // Built-in mods left out of the game modes (and off their Mods page): Exit
@@ -134,6 +139,8 @@ const MenuDefault kDefaults[] = {
     // instead (GameDesc::old3ds_frame_cap below), its cores having no room
     // for in-betweens.
     { "frame_cap", 2 },
+    // A quarter of the particles on an Old 3DS (the row above).
+    { "particles", 2, MenuDefault::Old3dsOnly },
 };
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
@@ -303,7 +310,6 @@ int main(int argc, char** argv) {
     // about 5 screens of fragments an eye, 10 ms an eye): 16-bit eye depth,
     // I/IA textures as LA8, and the frame's leading full-screen fill (Banjo
     // starts every frame with one) turned into the eyes' clear. Same pictures.
-    // settings.ini's gpu_depth16, gpu_textures16, gpu_fill_clear switch them.
     desc.render.eye_depth16 = true;
     desc.render.intensity_textures16 = true;
     desc.render.fill_clear = true;
@@ -327,8 +333,8 @@ int main(int argc, char** argv) {
     // With two cores (an Old 3DS) the game takes core 0, which the
     // application has whole, and the renderer and audio core 1's 80%: at the
     // Old clock the game's own work filled core 1 (13-20 lists a second
-    // against the 30 asked) while core 0 sat about 55% busy. The Cores row's
-    // "2, game on 1" is the other layout, for comparison.
+    // against the 30 asked) while core 0 sat about 55% busy. settings.ini's
+    // dbg_cores=1 is the other layout ("2, game on 1"), for comparison.
     desc.two_cores_game_on_core0 = true;
     // game_draw waits on "parsed" every frame, so core 0 sits idle while
     // core 1 reads the list (26 ms there against about 21 on core 0): the

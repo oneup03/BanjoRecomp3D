@@ -80,3 +80,22 @@ build-host/
 azahar-out/
 *.3dsx
 *.cia
+
+# 3DS debugging leftovers (platform/3ds): screenshots (SELECT held, Azahar
+# runs), renderer and audio captures copied off the SD card (RDRAM dumps:
+# game data), the AUDIO_WAV.TXT recording, and console logs
+screenshots/
+*.bmp
+*.ppm
+*.raw
+gfx_task*.bin
+gfx_snapshot*.raw
+audio_task_*.bin
+audio.wav
+/*log*.txt
+# Game-mode ROMs made with make_game_mod_rom.py (64 MB, game data) and their
+# stamps, wherever the script was run from
+/mods/
+*.z64.ok
+# Untracked working notes
+platform/3ds/FRAME_INTERPOLATION_HANDOFF.md
