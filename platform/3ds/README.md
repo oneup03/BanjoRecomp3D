@@ -7,13 +7,18 @@ Banjo: Recompiled for the Nintendo 3DS family, with stereoscopic 3D. A New
 
 ## Installing
 
+Download the latest build from the
+[releases page](https://github.com/oneup03/BanjoRecomp3D/releases/tag/rolling):
+
 - **CIA** (`BanjoRecompiled3D-3ds-<commit>.cia`): install it with FBI or
-  another CIA installer; FBI can also scan the QR code on the release page
+  another CIA installer, or scan the QR code below with FBI
   (Remote Install > Scan QR Code). It appears on the HOME Menu as "Banjo:
   Recompiled". On an Old 3DS or 2DS, use the CIA (see Performance).
 - **.3dsx** (`BanjoRecompiled3D-3ds-<commit>.zip`): extract it to the root of
   the SD card and start `3ds/BanjoRecomp/BanjoRecomp.3dsx` from the Homebrew
   Launcher.
+
+![QR code for FBI: the latest CIA](https://github.com/oneup03/BanjoRecomp3D/releases/download/rolling/BanjoRecompiled3D-3ds-QR.png)
 
 Both need your own ROM: the US 1.0 version of Banjo-Kazooie in .z64 format
 (the file the desktop version asks for), at `sdmc:/3ds/BanjoRecomp/BK.z64`.
