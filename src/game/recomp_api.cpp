@@ -219,6 +219,12 @@ extern "C" void recomp_get_jinjo_saving_enabled(uint8_t* rdram, recomp_context* 
     );
 }
 
+// Particle bursts are thinned only on the 3DS (patches/particle_patches.c,
+// its Particles setting); here every particle is drawn.
+extern "C" void recomp_get_particle_divisor(uint8_t* rdram, recomp_context* ctx) {
+    _return<s32>(ctx, 1);
+}
+
 extern "C" void recomp_get_right_analog_inputs(uint8_t* rdram, recomp_context* ctx) {
     float* x_out = _arg<0, float*>(rdram, ctx);
     float* y_out = _arg<1, float*>(rdram, ctx);
