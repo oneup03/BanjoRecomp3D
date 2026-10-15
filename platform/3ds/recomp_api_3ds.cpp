@@ -128,13 +128,6 @@ extern "C" void recomp_get_cutscene_aspect_ratio(uint8_t* rdram, recomp_context*
     _return(ctx, 16.0f / 9.0f);
 }
 
-// The desktop scales convergence down in the scenes stereo_runtime.c flags
-// (menus, cutscenes, first person). On the 3DS convergence is depth-driven
-// only (rt64-3ds auto convergence), so the flag is ignored.
-extern "C" void recomp_stereo_set_low_convergence_scene(uint8_t* rdram, recomp_context* ctx) {
-    (void)rdram; (void)ctx;
-}
-
 // The game's music volume is scaled by this factor (1.0 = unchanged).
 extern "C" void recomp_get_bgm_volume(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram;

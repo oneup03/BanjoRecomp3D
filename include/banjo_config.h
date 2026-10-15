@@ -33,7 +33,7 @@ namespace banjo {
             inline const std::string stereo_convergence = "stereo_convergence";
             inline const std::string stereo_hud_depth = "stereo_hud_depth";
             inline const std::string stereo_auto_convergence = "stereo_auto_convergence";
-            inline const std::string stereo_auto_convergence_scale = "stereo_auto_convergence_scale";
+            inline const std::string stereo_comfort_target = "stereo_comfort_target";
             inline const std::string stereo_ghost_contrast = "stereo_ghost_contrast";
             inline const std::string stereo_ghost_black_floor = "stereo_ghost_black_floor";
         }
@@ -139,7 +139,7 @@ namespace banjo {
     bool get_stereo_auto_convergence();
     // 0..100, applied as a fraction (0.0..1.0) of the configured convergence
     // when auto-convergence triggers. 25 = 25% of the slider value.
-    uint32_t get_stereo_auto_convergence_scale();
+    int32_t get_stereo_comfort_target();
     // Ghost (crosstalk) reduction, both applied by the stereo compose shader.
     // Contrast is 0..100 percent with 100 = off; black floor is 0..100 percent
     // with 0 = off. Both are exact no-ops at their defaults.

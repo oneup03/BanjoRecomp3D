@@ -252,7 +252,6 @@ extern "C" {
     void recomp_get_target_aspect_ratio(uint8_t* rdram, recomp_context* ctx);
     void recomp_get_target_framerate(uint8_t* rdram, recomp_context* ctx);
     void recomp_get_cutscene_aspect_ratio(uint8_t* rdram, recomp_context* ctx);
-    void recomp_stereo_set_low_convergence_scene(uint8_t* rdram, recomp_context* ctx);
     void recomp_get_analog_cam_enabled(uint8_t* rdram, recomp_context* ctx);
     void recomp_get_right_analog_inputs(uint8_t* rdram, recomp_context* ctx);
     void recomp_get_bgm_volume(uint8_t* rdram, recomp_context* ctx);
@@ -271,7 +270,6 @@ int main(int argc, char** argv) {
     REGISTER_FUNC(recomp_get_target_aspect_ratio);
     REGISTER_FUNC(recomp_get_target_framerate);
     REGISTER_FUNC(recomp_get_cutscene_aspect_ratio);
-    REGISTER_FUNC(recomp_stereo_set_low_convergence_scene);
     REGISTER_FUNC(recomp_get_analog_cam_enabled);
     REGISTER_FUNC(recomp_get_right_analog_inputs);
     REGISTER_FUNC(recomp_get_bgm_volume);

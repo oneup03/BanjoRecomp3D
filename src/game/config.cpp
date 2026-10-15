@@ -9,6 +9,7 @@
 #include "librecomp/files.hpp"
 #include "librecomp/config.hpp"
 #include "util/file.h"
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -196,13 +197,16 @@ static void push_stereo_config_to_renderer() {
         graphics_config.get_temp_option_value(banjo::configkeys::graphics::stereo_hud_depth)));
     bool autoConv = std::get<bool>(
         graphics_config.get_temp_option_value(banjo::configkeys::graphics::stereo_auto_convergence));
-    uint32_t autoConvScale = static_cast<uint32_t>(std::get<double>(
-        graphics_config.get_temp_option_value(banjo::configkeys::graphics::stereo_auto_convergence_scale)));
+    // The comfort target is signed (-50..60 in the renderer), and the bridge
+    // carries it unsigned, biased by +50.
+    const int32_t comfortSigned = static_cast<int32_t>(std::lround(std::get<double>(
+        graphics_config.get_temp_option_value(banjo::configkeys::graphics::stereo_comfort_target))));
+    uint32_t comfortTarget = static_cast<uint32_t>(std::clamp(comfortSigned, -50, 60) + 50);
     uint32_t ghostContrast = static_cast<uint32_t>(std::get<double>(
         graphics_config.get_temp_option_value(banjo::configkeys::graphics::stereo_ghost_contrast)));
     uint32_t ghostBlackFloor = static_cast<uint32_t>(std::get<double>(
         graphics_config.get_temp_option_value(banjo::configkeys::graphics::stereo_ghost_black_floor)));
-    recompui::renderer::set_stereo_config(banjo_to_rt64_stereo(mode), separation, convergence, hudDepth, autoConv, autoConvScale, ghostContrast, ghostBlackFloor);
+    recompui::renderer::set_stereo_config(banjo_to_rt64_stereo(mode), separation, convergence, hudDepth, autoConv, comfortTarget, ghostContrast, ghostBlackFloor);
 }
 
 static void add_graphics_options(recomp::config::Config &config) {
@@ -261,15 +265,15 @@ static void add_graphics_options(recomp::config::Config &config) {
     config.add_bool_option(
         banjo::configkeys::graphics::stereo_auto_convergence,
         "Auto Convergence",
-        "Automatically reduces convergence in flat or near-camera scenes (file select, FMVs, first-person view, cutscenes, Bottles' bonus). Helps keep these scenes comfortable when the regular Stereo Convergence is tuned for gameplay.",
+        "Measures the nearest thing on screen every frame and pulls the screen plane in when it would pop out further than <recomp-color primary>Comfort Target</recomp-color> allows. Stereo Convergence stays the farthest it goes.",
         true,
         false
     );
     config.add_number_option(
-        banjo::configkeys::graphics::stereo_auto_convergence_scale,
-        "Auto Convergence Scale",
-        "Fraction of Stereo Convergence applied during auto-triggered scenes. <recomp-color primary>25</recomp-color> = 25% of the slider value (default). <recomp-color primary>100</recomp-color> = no reduction.",
-        0, 100, 1, 0, false, 25
+        banjo::configkeys::graphics::stereo_comfort_target,
+        "Comfort Target",
+        "How far the nearest thing on screen may pop out before <recomp-color primary>Auto Convergence</recomp-color> pulls the screen plane in, in tenths of a percent of screen width. <recomp-color primary>0</recomp-color> puts the screen plane right on the nearest object; <recomp-color primary>negative</recomp-color> values push it in front of that, so the whole scene sits behind the screen with no pop-out at all; positive values allow more pop-out.",
+        -20, 30, 1, 0, false, 0
     );
     config.add_number_option(
         banjo::configkeys::graphics::stereo_ghost_contrast,
@@ -313,8 +317,8 @@ static void add_graphics_options(recomp::config::Config &config) {
         banjo::configkeys::graphics::stereo_mode,
         banjo::StereoMode::Off
     );
-    // Hide the scale slider when either stereo is off or auto-convergence is
-    // off. The slider has no effect in those cases so it'd just be noise.
+    // Hide the comfort target when either stereo is off or auto-convergence is
+    // off. It has no effect in those cases so it'd just be noise.
     //
     // ConfigOptionDependency stores ONE value-list per dependent and overwrites
     // it on every add_option_hidden_dependency call, so the naive pattern of
@@ -329,12 +333,12 @@ static void add_graphics_options(recomp::config::Config &config) {
             false
         };
         config.add_option_hidden_dependency(
-            banjo::configkeys::graphics::stereo_auto_convergence_scale,
+            banjo::configkeys::graphics::stereo_comfort_target,
             banjo::configkeys::graphics::stereo_mode,
             hide_when_scale
         );
         config.add_option_hidden_dependency(
-            banjo::configkeys::graphics::stereo_auto_convergence_scale,
+            banjo::configkeys::graphics::stereo_comfort_target,
             banjo::configkeys::graphics::stereo_auto_convergence,
             hide_when_scale
         );
@@ -348,7 +352,7 @@ static void add_graphics_options(recomp::config::Config &config) {
     config.add_option_change_callback(banjo::configkeys::graphics::stereo_convergence, stereo_change_callback);
     config.add_option_change_callback(banjo::configkeys::graphics::stereo_hud_depth, stereo_change_callback);
     config.add_option_change_callback(banjo::configkeys::graphics::stereo_auto_convergence, stereo_change_callback);
-    config.add_option_change_callback(banjo::configkeys::graphics::stereo_auto_convergence_scale, stereo_change_callback);
+    config.add_option_change_callback(banjo::configkeys::graphics::stereo_comfort_target, stereo_change_callback);
     config.add_option_change_callback(banjo::configkeys::graphics::stereo_ghost_contrast, stereo_change_callback);
     config.add_option_change_callback(banjo::configkeys::graphics::stereo_ghost_black_floor, stereo_change_callback);
 
@@ -478,8 +482,10 @@ uint32_t banjo::get_stereo_ghost_black_floor() {
     return get_graphics_config_number_value(banjo::configkeys::graphics::stereo_ghost_black_floor);
 }
 
-uint32_t banjo::get_stereo_auto_convergence_scale() {
-    return get_graphics_config_number_value(banjo::configkeys::graphics::stereo_auto_convergence_scale);
+int32_t banjo::get_stereo_comfort_target() {
+    // Signed: a negative target keeps the whole scene behind the screen.
+    return static_cast<int32_t>(std::lround(std::get<double>(
+        recompui::config::get_graphics_config().get_option_value(banjo::configkeys::graphics::stereo_comfort_target))));
 }
 
 void banjo::init_config() {
