@@ -10,7 +10,8 @@ has been played for hours, levels and a game mode (Jiggies of Time)
 included, with the interpolated 60 fps mode below. At the Old 3DS clock
 with two cores (`dbg_old_clock` and `dbg_cores` in `settings.ini` on a New 3DS) it
 runs at about 16-19 frames a second where it asks for 20 or 30, with the
-ROM read from the SD card; a real Old 3DS is untested.
+ROM read from the SD card. A real Old 3DS starts it and plays; its memory
+can't hold the ROM beside the game (see "Memory on an Old 3DS" below).
 
 ## Installing
 
@@ -169,6 +170,20 @@ New 3DS most of an Old 3DS's limits:
 
 The console still has its extra cores and more memory, so it runs a little
 better than a real Old 3DS would.
+
+### Memory on an Old 3DS
+
+An Old 3DS gives the game 37.6 MB of heap (its 64 MB less the executable
+and 16 MB of linear memory for the GPU). The game's RDRAM takes 16 MB of
+it and the rest of the port about 12 MB, which leaves no room for the
+16 MB ROM: it peaked at 30.3 MB with the ROM read from the card through a
+2 MB cache. So an Old 3DS reads the ROM from the SD card (the game's own
+choice, `GameDesc::rom_old3ds`, so the emulator's roomier Old 3DS does the
+same) through a 4 MB cache (`GameDesc::rom_cache_mb`) in blocks of 128 KB,
+with the next block read ahead; a card read there costs about 100 ms, and the game reads its
+level data once, so the cost sits in the loads, not in play. `rom_stream=1`
+in `settings.ini` forces the ROM into memory and will run out of heap on an
+Old 3DS. The boot and `after exit` lines of `log.txt` give the heap figures.
 
 ## Building
 

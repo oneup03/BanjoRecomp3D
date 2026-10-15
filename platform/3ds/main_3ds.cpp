@@ -240,6 +240,21 @@ int main(int argc, char** argv) {
     desc.on_mod_switched = mod_switched;
     desc.mods_not_in_game_modes_count = sizeof(kModsNotInGameModes) / sizeof(kModsNotInGameModes[0]);
     desc.sd_dir = "BanjoRecomp";
+    // The ROM (16 MB) is held in memory on a New 3DS. An Old 3DS streams it
+    // from the card: the CIA's heap there is 37.6 MB, and the game peaked at
+    // 30.3 MB of it with a 2 MB stream cache (RDRAM 16 MB, about 12 MB for
+    // the rest), so the ROM beside RDRAM would need 44 MB. Said outright
+    // rather than left to the heap test, so Azahar's Old 3DS (a 72 MB heap)
+    // streams like the console; rom_room_mb is the measured rest, for the
+    // log's figures and settings.ini's rom_stream. The cache is what the
+    // heap can spare with room to grow. A level load reads its data once
+    // (whole minutes pass without a read), so a bigger cache only saves the
+    // revisits. A game mode's 64 MB ROM is streamed on both consoles
+    // through the same cache.
+    desc.rom_new3ds = recomp3ds::GameDesc::RomPlace::Memory;
+    desc.rom_old3ds = recomp3ds::GameDesc::RomPlace::Stream;
+    desc.rom_room_mb = 13;
+    desc.rom_cache_mb = 4;
     desc.entry = recomp::GameEntry{
         .rom_hash = 0x1B67585D56E07F8CULL,
         .internal_name = "Banjo-Kazooie",
