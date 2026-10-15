@@ -1,40 +1,80 @@
 # Nintendo 3DS build
 
-Banjo: Recompiled for the New Nintendo 3DS and New 2DS XL, with
-stereoscopic 3D. The renderer and platform layer are
+Banjo: Recompiled for the Nintendo 3DS family, with stereoscopic 3D. A New
+3DS or New 2DS XL is recommended; an Old 3DS or 2DS runs it, but slowly
+(see Performance). The renderer and platform layer are
 [rt64-3ds](https://github.com/oneup03/rt64-3ds) (`lib/rt64-3ds`).
-
-Status: the game plays at its full frame rate with stereo 3D, audio, the
-settings menu, the built-in mods and the three game modes. On a New 3DS it
-has been played for hours, levels and a game mode (Jiggies of Time)
-included, with the interpolated 60 fps mode below. At the Old 3DS clock
-with two cores (`dbg_old_clock` and `dbg_cores` in `settings.ini` on a New 3DS) it
-runs at about 16-19 frames a second where it asks for 20 or 30, with the
-ROM read from the SD card. A real Old 3DS starts it and plays; its memory
-can't hold the ROM beside the game (see "Memory on an Old 3DS" below).
 
 ## Installing
 
-Extract the `.3dsx` to `sdmc:/3ds/BanjoRecomp/BanjoRecomp.3dsx` and start it
-from the Homebrew Launcher, or install the `.cia` (with FBI, for instance)
-to start it from the HOME Menu. Both use the same folder on the SD card.
+- **CIA** (`BanjoRecompiled3D-3ds-<commit>.cia`): install it with FBI or
+  another CIA installer; FBI can also scan the QR code on the release page
+  (Remote Install > Scan QR Code). It appears on the HOME Menu as "Banjo:
+  Recompiled". On an Old 3DS or 2DS, use the CIA (see Performance).
+- **.3dsx** (`BanjoRecompiled3D-3ds-<commit>.zip`): extract it to the root of
+  the SD card and start `3ds/BanjoRecomp/BanjoRecomp.3dsx` from the Homebrew
+  Launcher.
 
-It needs your own ROM: the US 1.0 version of Banjo-Kazooie in .z64 format
+Both need your own ROM: the US 1.0 version of Banjo-Kazooie in .z64 format
 (the file the desktop version asks for), at `sdmc:/3ds/BanjoRecomp/BK.z64`.
 The game checks the ROM's hash at start and deletes a file that does not
 match, so copy it rather than move it.
 
-What the folder holds once the game has run:
+For sound, the console's DSP firmware must be on the SD card at
+`sdmc:/3ds/dspfirm.cdc`, as for any homebrew with audio. Dump it once with
+Luma3DS: open the Rosalina menu (L + D-pad down + SELECT), then
+Miscellaneous options > Dump DSP firmware. Without it the game runs silent.
+
+On the SD card, once installed:
 
 ```
-sdmc:/3ds/BanjoRecomp/
-  BanjoRecomp.3dsx   the program (not needed with the CIA installed)
-  BK.z64             your ROM
-  mods/              game modes' ROMs, made on a PC (see "Game modes")
-  saves/             saves; a game mode keeps its own in saves/<mod id>/
-  settings.ini       the settings, the built-in mods' included (once one is changed)
-  log.txt            the last run's log, useful in a bug report
+sdmc:/3ds/
+  dspfirm.cdc              the DSP firmware, for sound
+  BanjoRecomp/
+    BanjoRecomp.3dsx       the program (not needed with the CIA installed)
+    BK.z64                 your ROM
+    mods/                  the game modes' ROMs, for those you play (see Game modes)
+      bk_jiggies_of_time.z64       BK The Jiggies of Time
+      bk_jiggies_of_time.z64.ok
+      bk_nostalgia_64.z64          BK Nostalgia 64
+      bk_nostalgia_64.z64.ok
+      Loggo_BanjoDreamie.z64       Banjo Dreamie
+      Loggo_BanjoDreamie.z64.ok
 ```
+
+### Game modes
+
+Three ROM hacks can be played as game modes. Their code is built in; each
+needs its own ROM, which you make once on a PC from your `BK.z64` and the
+mod's file:
+
+| Game mode | Version | Thunderstore package |
+|---|---|---|
+| BK The Jiggies of Time | 1.0.1 | [KurkoMods/BK_The_Jiggies_of_Time](https://thunderstore.io/c/banjo-recompiled/p/KurkoMods/BK_The_Jiggies_of_Time/) |
+| BK Nostalgia 64 | 1.0.1 | [KurkoMods/BK_Nostalgia_64](https://thunderstore.io/c/banjo-recompiled/p/KurkoMods/BK_Nostalgia_64/) |
+| Banjo Dreamie | 1.3.2 | [Loggo/Banjo_Dreamie](https://thunderstore.io/c/banjo-recompiled/p/Loggo/Banjo_Dreamie/) |
+
+1. Extract the .3dsx zip into a folder on your PC, or straight onto the SD
+   card's root. Do this with the CIA too: the zip holds the script.
+2. Put your ROM there as `3ds/BanjoRecomp/BK.z64`.
+3. Download the game modes you want from Thunderstore (the table above), take
+   the `.nrm` file out of each package (a zip), and put it next to
+   `make_game_mod_rom.py` at the folder's root.
+4. Run `make_game_mod_rom.py`: double-click it on Windows, or run
+   `python3 make_game_mod_rom.py` in that folder. It needs Python 3
+   (python.org) and nothing else. It writes each mode's ROM (64 MB) and a
+   small `.ok` file into `3ds/BanjoRecomp/mods/`.
+5. Copy the `3ds` folder onto the SD card's root, unless you extracted onto
+   the card. The `.nrm` files and the script aren't needed on the card.
+
+Use the versions above: a ROM made from another version is refused. The
+console doesn't make these ROMs itself: the patch alone is more than an Old
+3DS has memory for.
+
+With a mode's ROM in place, a menu at start offers the game and each game
+mode. A mode that can't be played is listed in red with the reason: its ROM
+missing, made from another version, or incomplete. Each mode keeps its own
+saves.
 
 ## Controls
 
@@ -54,28 +94,49 @@ sdmc:/3ds/BanjoRecomp/
 SELECT opens the settings on the bottom screen. Some built-in mods add
 buttons on the touch screen while they're on: see Mods.
 
+Holding SELECT for a second saves a screenshot to
+`sdmc:/3ds/BanjoRecomp/screenshots/`: both eyes when 3D is on, and the touch
+screen, as BMPs.
+
+## Stereo 3D
+
+The console's 3D slider turns the 3D on and sets how strong it is; with
+the slider down the game draws one image. The settings' 3D page tunes it:
+
+| Setting | What it does |
+|---|---|
+| 3D depth | The separation between the eyes at the top of the slider (default 50). Raise it for more depth, lower it if the image is hard to focus. |
+| Convergence | How far into the scene the screen's plane sits (default 10.0): things nearer than it come out of the screen, things beyond it go in. |
+| HUD depth | Where the HUD, menus and text sit (50 is on the screen's plane; higher brings them out of the screen, lower pushes them in). |
+| Auto convergence | On by default: when something comes close to the camera (a wall, Banjo in a close-up, a cutscene's speaker), the screen's plane moves nearer so it doesn't pop out too far. Convergence stays the farthest it goes. |
+| Comfort target | How far out of the screen Auto convergence lets near things come (0 by default; higher for more pop-out, lower to keep everything behind the screen). |
+| Ghost reduction: contrast, Ghost black floor | Ease ghosting (a faint double image of high-contrast edges on some screens) by softening contrast and lifting blacks. Off by default (100% and 0%). |
+
 ## Performance
 
-A New 3DS runs the game at its full frame rate (30 fps in play, 20 in many
-cutscenes) and, by default, draws interpolated frames between each two of
-the game's (the Game page's Frame rate: 60 interp.): one while the game
-runs at 30, two in the cutscenes at 20. A scene too heavy to draw twice in
-time drops back to the game's rate until it fits again, and frames that
-render into a texture (the jiggy transition, the picture puzzles) go
-without. An Old 3DS defaults to the game's own frame rate, as it can't
-afford the frames in between.
+**New 3DS / New 2DS XL:** holds 60 fps most of the time. The game itself
+runs at 30 in play and 20 in many cutscenes, and by default interpolated
+frames are drawn between its own (the Game page's Frame rate: 60 interp.):
+one at 30, two at 20. The heaviest scenes drop back toward the game's rate,
+and frames that render into a texture (the jiggy transition, the picture
+puzzles) go without. Set Frame rate to Game for the original frame rate.
 
-The `stats:` line in `log.txt` says how many frames were shown and why
-lists went without an in-between; see "Testing the Old 3DS on a New 3DS"
-below for the rows that mimic an Old 3DS.
+**Old 3DS / 2DS:** runs at 15-25 fps. Install the CIA rather than running
+the .3dsx: an Old 3DS gives a game only 64 MB, too little to hold the 16 MB
+ROM beside the game, so the game reads the ROM from the SD card as it needs
+it, and the CIA leaves it more room than the Homebrew Launcher does. Loads
+take a little longer than on a New 3DS; play itself isn't slowed by the
+reads. It starts at the game's own frame rate, as it can't afford the
+frames in between, and with particles at Quarter.
 
-The Game page's **Particles** row (Full, Half, Quarter; an Old 3DS starts
-at Quarter) scales down what the particle emitters put out. Each particle is
-a draw of its own, with its own sprite frame and colour, so the renderer's
-cost per particle is a draw's: in a capture of a jiggy's sparkles, 225 of
-the frame's 360 draws were sparkles. Half divides every burst by two and
-halves the timed emitters' rate; nothing is switched off, since effects end
-when their particles run out.
+To make it run on the 3DS, this build keeps a few things the desktop build
+turns off. The game's own culling stays on and far objects use their
+low-detail models, as on the N64. The Game page's **Particles** row (Full,
+Half, Quarter) thins the sparkles, dust and smoke: each particle costs a
+draw (a jiggy's sparkles were 225 of one frame's 360 draws), which an Old
+3DS can't afford by the hundred. Half divides every burst by two and halves
+the steady emitters' rate; nothing is switched off, since effects end when
+their particles run out.
 
 ## Mods
 
@@ -126,64 +187,11 @@ In a game mode, Exit to Lair stays off and isn't listed: it returns to the
 original game's lair entrances, which the game modes rework. It stays on for
 the game itself if you turned it on.
 
-## Game modes
+## AI use
 
-Three ROM hacks can be played as game modes. Their code is built in; each
-needs its ROM, which you make on a PC from your `BK.z64` and the mod's file:
-
-| Game mode | Version | Thunderstore package |
-|---|---|---|
-| BK The Jiggies of Time | 1.0.1 | [KurkoMods/BK_The_Jiggies_of_Time](https://thunderstore.io/c/banjo-recompiled/p/KurkoMods/BK_The_Jiggies_of_Time/) |
-| BK Nostalgia 64 | 1.0.1 | [KurkoMods/BK_Nostalgia_64](https://thunderstore.io/c/banjo-recompiled/p/KurkoMods/BK_Nostalgia_64/) |
-| Banjo Dreamie | 1.3.2 | [Loggo/Banjo_Dreamie](https://thunderstore.io/c/banjo-recompiled/p/Loggo/Banjo_Dreamie/) |
-
-Take the `.nrm` out of the package (a zip) and run
-[`make_game_mod_rom.py`](https://github.com/oneup03/rt64-3ds/blob/main/tools/make_game_mod_rom.py)
-on it (Python 3, nothing else to install; `lib/rt64-3ds/tools/` in this
-repository):
-
-```
-python3 make_game_mod_rom.py BK.z64 bk_jiggies_of_time.nrm bk_nostalgia_64.nrm Loggo_BanjoDreamie.nrm
-```
-
-It writes a `mods` folder with each mode's ROM (64 MB) and a small `.ok`
-file beside it: copy both into `sdmc:/3ds/BanjoRecomp/mods/`. The `.nrm`
-itself isn't needed on the SD card. Use the versions above: a ROM made from
-another version is refused. The console doesn't make these itself: the
-patch alone is more than an Old 3DS has memory for.
-
-With a mode's ROM there, a menu at start offers the game and each game
-mode. A mode that can't be played is listed in red with the reason: its ROM
-missing, made from another version, or incomplete. Each mode keeps its own
-saves.
-
-## Testing the Old 3DS on a New 3DS
-
-Two keys in `settings.ini` (beside the executable; not on the menu) give a
-New 3DS most of an Old 3DS's limits:
-- `dbg_old_clock=1`: 268 MHz without the L2 cache, applied at start.
-- `dbg_cores`: the two-core layouts an Old 3DS has, read at start. `2`
-  ("2, game on 0") is what an Old 3DS gets for this game: the game and the
-  reading of each display list on core 0, the drawing and audio on core 1.
-  `1` ("2, game on 1") swaps the cores, for comparison. Both leave the
-  in-between builder off.
-
-The console still has its extra cores and more memory, so it runs a little
-better than a real Old 3DS would.
-
-### Memory on an Old 3DS
-
-An Old 3DS gives the game 37.6 MB of heap (its 64 MB less the executable
-and 16 MB of linear memory for the GPU). The game's RDRAM takes 16 MB of
-it and the rest of the port about 12 MB, which leaves no room for the
-16 MB ROM: it peaked at 30.3 MB with the ROM read from the card through a
-2 MB cache. So an Old 3DS reads the ROM from the SD card (the game's own
-choice, `GameDesc::rom_old3ds`, so the emulator's roomier Old 3DS does the
-same) through a 4 MB cache (`GameDesc::rom_cache_mb`) in blocks of 128 KB,
-with the next block read ahead; a card read there costs about 100 ms, and the game reads its
-level data once, so the cost sits in the loads, not in play. `rom_stream=1`
-in `settings.ini` forces the ROM into memory and will run out of heap on an
-Old 3DS. The boot and `after exit` lines of `log.txt` give the heap figures.
+The 3DS port, including this build's code and documentation and the
+rt64-3ds renderer it uses, was written with the help of AI tools (Claude),
+under the developer's direction and with their testing on real consoles.
 
 ## Building
 
