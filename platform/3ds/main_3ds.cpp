@@ -30,9 +30,10 @@ namespace {
 // N64 D-pad or L, but some built-in mods do: the D-pad's down for Banjo Bee
 // (its bee flight), all four directions for Transform Anywhere, and L for
 // Ability Anywhere (L + A), Cheats (hold L to moon jump) and Transform
-// Anywhere (its "L + D-pad" mode). While one of them is on, those buttons are
-// either on the touch screen (the default: the buttons stay as they are),
-// or on the buttons themselves ("Mod buttons" on the Controls page):
+// Anywhere (its "L + D-pad" mode). While one of them is on, they are either
+// on the touch screen (the default: the buttons stay as they are), as a
+// button for each thing a mod does (mod_touch_buttons below), or on the
+// buttons themselves ("Mod buttons" on the Controls page):
 // - the D-pad directions a mod reads become the N64 D-pad's;
 // - ZL becomes N64 L.
 // The C buttons stay on X, Y, ZR and the C-Stick (and ZL or the D-pad where
@@ -70,21 +71,67 @@ int g_mod_buttons = 0;      // 0: on the touch screen, 1: the D-pad and ZL
 // The buttons for the mods on now: at the game's start, whenever one is
 // switched on the Mods page (it takes effect at once), and when "Mod
 // buttons" changes.
+// A mod option's value (an enum's index), 0 when it has none.
+uint32_t mod_option(const char* mod_id, const char* option_id) {
+    const recomp::config::ConfigValueVariant v = recomp::mods::get_mod_config_value(mod_id, option_id);
+    if (const uint32_t* u = std::get_if<uint32_t>(&v)) return *u;
+    if (const bool* b = std::get_if<bool>(&v)) return *b ? 1u : 0u;
+    return 0;
+}
+
+// The touch screen's buttons: one for each thing the mods on now do, each
+// pressing what that mod reads (touch_pad_set_buttons), so no button needs
+// another held with it and one finger plays them all on an Old 3DS.
+// - Ability Anywhere wants L held as A is pressed, then A alone (a tap
+//   takes off, a hold Shock Jumps): L + A for the press, A after, so Cheats'
+//   moon jump (L held) sees L only for that moment.
+// - Transform Anywhere's buttons are its D-pad directions, with L for the
+//   press in its "L + D-pad" mode. Its rows follow "Allowed
+//   Transformations": all four, D-pad up alone (Current World: the world's
+//   form; Banjo: back to Banjo), or none.
+// - Banjo Bee's toggle reads D-pad down newly pressed, whatever else is
+//   held: Transform's Croc / Walrus button toggles it too, and in Transform's
+//   D-pad mode Bee flight also turns Banjo into the crocodile. Its "L +
+//   D-pad" mode keeps Bee flight to itself.
+size_t mod_touch_buttons(TouchButton* out) {
+    auto on = [](const char* id) { return recomp::mods::is_mod_enabled(id); };
+    size_t n = 0;
+    if (on(kAbilityAnywhere)) out[n++] = { "Fly / Shock jump", N64_L | N64_A, N64_A, true };    // right column (Moon jump too): the right thumb, by A
+    if (on(kCheats) && mod_option(kCheats, "moon_jump") != 0) out[n++] = { "Moon jump", N64_L, N64_L, true };
+    if (on(kBanjoBee)) out[n++] = { "Bee flight", N64_DDOWN, 0 };
+    if (on(kTransformAnywhere)) {
+        const uint16_t l = mod_option(kTransformAnywhere, "button_mode") == 1 ? N64_L : 0;
+        switch (mod_option(kTransformAnywhere, "allowed_transformations")) {
+            case 0:     // All
+                out[n++] = { "Washing machine", (uint16_t)(l | N64_DUP), 0 };
+                out[n++] = { "Croc / Walrus", (uint16_t)(l | N64_DDOWN), 0 };
+                out[n++] = { "Bee", (uint16_t)(l | N64_DLEFT), 0 };
+                out[n++] = { "Termite / Pumpkin", (uint16_t)(l | N64_DRIGHT), 0 };
+                break;
+            case 1: out[n++] = { "Transform", (uint16_t)(l | N64_DUP), 0 }; break;        // Current World
+            case 2: out[n++] = { "Back to Banjo", (uint16_t)(l | N64_DUP), 0 }; break;    // Banjo
+            default: break;                                                               // None
+        }
+    }
+    return n;
+}
+
 void set_buttons() {
     auto on = [](const char* id) { return recomp::mods::is_mod_enabled(id); };
     const bool transform = on(kTransformAnywhere);
     const DpadUse d = transform ? DpadAll : on(kBanjoBee) ? DpadDown : DpadNone;
     const bool need_l = transform || on(kAbilityAnywhere) || on(kCheats);
+    touch_pad_set(0);
     if (g_mod_buttons == 0) {
         const Buttons& b = g_buttons[DpadNone][0];
         input_set_map(b.map, b.count);
-        const uint16_t dpad = d == DpadAll ? (N64_DUP | N64_DDOWN | N64_DLEFT | N64_DRIGHT) : d == DpadDown ? N64_DDOWN : 0;
-        touch_pad_set(dpad | (need_l ? N64_L : 0));
+        TouchButton touch[kTouchButtonsMax];
+        touch_pad_set_buttons(touch, mod_touch_buttons(touch));
     }
     else {
         const Buttons& b = g_buttons[d][need_l ? 1 : 0];
         input_set_map(b.map, b.count);
-        touch_pad_set(0);
+        touch_pad_set_buttons(nullptr, 0);
     }
 }
 void mod_buttons_changed(int) { set_buttons(); }
@@ -93,6 +140,9 @@ void bk_on_init_3ds(uint8_t* rdram, recomp_context* ctx) {
     set_buttons();
 }
 void mod_switched(const char*, bool) {
+    set_buttons();
+}
+void mod_option_changed(const char*, const char*) {
     set_buttons();
 }
 
@@ -238,6 +288,7 @@ int main(int argc, char** argv) {
     recomp::Version::from_string("1.0.2", desc.project_version);
     desc.mods_not_in_game_modes = kModsNotInGameModes;
     desc.on_mod_switched = mod_switched;
+    desc.on_mod_option_changed = mod_option_changed;
     desc.mods_not_in_game_modes_count = sizeof(kModsNotInGameModes) / sizeof(kModsNotInGameModes[0]);
     desc.sd_dir = "BanjoRecomp";
     // The ROM (16 MB) is held in memory on a New 3DS. An Old 3DS streams it
