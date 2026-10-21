@@ -504,6 +504,8 @@ jobs:
           mkdir -p "$out"
           cp build-3ds/BanjoRecompiled3DS.3dsx "$out/BanjoRecomp.3dsx"
           cp platform/3ds/README.md "$out/"
+          # OpenDSP (embedded) is BSD 2-Clause: a binary release carries its licence.
+          cp lib/rt64-3ds/third_party/OpenDSP/LICENSE "$out/OpenDSP-LICENSE.txt"
           cp lib/rt64-3ds/tools/make_game_mod_rom.py package/
           (cd package && zip -q -r "../BanjoRecompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.zip" 3ds make_game_mod_rom.py)
           cp build-3ds/BanjoRecompiled3DS.cia "BanjoRecompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia"

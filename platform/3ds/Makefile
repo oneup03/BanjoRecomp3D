@@ -63,11 +63,15 @@ GPR32_STUBS := "func_80253010", "func_80253034", "func_8025C29C",
 # replace. The game's and the patches' recompilations then run on copies of
 # their configs with mod_bake's hooks appended (a dispatch check at the entry
 # of every function a baked mod replaces or hooks).
+# The game's copy also turns on trace_mode: each function starts with
+# TRACE_ENTRY (platform/3ds/trace.h), the runtime's preemption check, so a
+# woken higher-priority game thread (the audio thread) runs at once, as the
+# N64's interrupts had it. The desktop config is left as it is.
 codegen:
 	cd $(ROOT) && { [ -e $(DECOMP_ROM) ] || ln -s decompressed.us.v10.z64 $(DECOMP_ROM); }
 	$(MAKE) patches-elf code-mods game-modes
 	$(MAKE) mods
-	cd $(ROOT) && sed '/^stubs = \[/a\    $(GPR32_STUBS)' banjo.us.rev0.toml | cat - $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
+	cd $(ROOT) && sed -e '/^stubs = \[/a\    $(GPR32_STUBS)' -e 's/^# trace_mode = true/trace_mode = true/' banjo.us.rev0.toml | cat - $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
 	cd $(ROOT) && $(HOST)/RSPRecomp n_aspMain.us.rev0.toml
 	$(MAKE) patches-recomp
 

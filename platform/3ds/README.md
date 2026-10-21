@@ -25,19 +25,22 @@ Both need your own ROM: the US 1.0 version of Banjo-Kazooie in .z64 format
 The game checks the ROM's hash at start and deletes a file that does not
 match, so copy it rather than move it.
 
-For sound, the console's DSP firmware must be on the SD card at
-`sdmc:/3ds/dspfirm.cdc`, as for any homebrew with audio. Dump it once with
-Luma3DS: open the Rosalina menu (L + D-pad down + SELECT), then
-Miscellaneous options > Dump DSP firmware. Without it the game runs silent.
+Sound needs nothing more: the game brings its own DSP firmware, OpenDSP
+(BSD 2-Clause, Copyright (c) 2026 Cellenseres; its licence is
+`OpenDSP-LICENSE.txt` in the release zip), which also plays the game's
+reverb. Should it fail to start, the game falls back to the console's own
+firmware at `sdmc:/3ds/dspfirm.cdc`, without reverb: dump that once with
+Luma3DS (the Rosalina menu, L + D-pad down + SELECT, then Miscellaneous
+options > Dump DSP firmware).
 
 On the SD card, once installed:
 
 ```
 sdmc:/3ds/
-  dspfirm.cdc              the DSP firmware, for sound
   BanjoRecomp/
     BanjoRecomp.3dsx       the program (not needed with the CIA installed)
     BK.z64                 your ROM
+    OpenDSP-LICENSE.txt    OpenDSP's licence (from the release zip)
     mods/                  the game modes' ROMs, for those you play (see Game modes)
       bk_jiggies_of_time.z64       BK The Jiggies of Time
       bk_jiggies_of_time.z64.ok
@@ -95,6 +98,11 @@ saves.
 | ZR, D-pad right | C-Right |
 | Circle Pad | analog stick |
 | C-Stick | C buttons, but not C-Up (first person) unless "C-Stick up" is on; or the analog camera (Controls settings) |
+
+The Controls page's X / Y buttons setting puts C-Right on X and C-Left on Y
+instead (C-Up and C-Down stay on the D-pad). The Game page's Performance
+monitor setting hides the bottom screen's frame rate and text; touch
+buttons stay.
 
 SELECT opens the settings on the bottom screen. Some built-in mods add
 buttons on the touch screen while they're on: see Mods.
@@ -188,7 +196,8 @@ N64 L. The changes add up when several mods are on:
 | Ability Anywhere, Cheats | C buttons | N64 L | D-pad left, C-Stick |
 | Transform Anywhere | the N64 D-pad | N64 L | C-Stick |
 
-C-Up stays on X, C-Down on Y and C-Right on ZR throughout. An Old 3DS has no
+C-Up stays on X, C-Down on Y (unless X / Y buttons says
+C-Left/Right) and C-Right on ZR throughout. An Old 3DS has no
 ZL, ZR or C-Stick, so keep "Mod buttons" on the touch screen there.
 
 In a game mode, Exit to Lair stays off and isn't listed: it returns to the
