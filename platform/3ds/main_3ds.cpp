@@ -289,19 +289,19 @@ int main(int argc, char** argv) {
     desc.on_mod_option_changed = mod_option_changed;
     desc.mods_not_in_game_modes_count = sizeof(kModsNotInGameModes) / sizeof(kModsNotInGameModes[0]);
     desc.sd_dir = "BanjoRecomp";
-    // The ROM (16 MB) is held in memory on a New 3DS. An Old 3DS streams it
-    // from the card: the CIA's heap there is 37.6 MB, and the game peaked at
-    // 30.3 MB of it with a 2 MB stream cache (RDRAM 16 MB, about 12 MB for
-    // the rest), so the ROM beside RDRAM would need 44 MB. Said outright
-    // rather than left to the heap test, so Azahar's Old 3DS (a 72 MB heap)
-    // streams like the console; rom_room_mb is the measured rest, for the
-    // log's figures and settings.ini's rom_stream. The cache is what the
-    // heap can spare with room to grow. A level load reads its data once
-    // (whole minutes pass without a read), so a bigger cache only saves the
-    // revisits. A game mode's 64 MB ROM is streamed on both consoles
-    // through the same cache.
+    // The ROM (16 MB) is held in memory on a New 3DS. On an Old 3DS it
+    // needs 44 MB beside RDRAM (16 MB) and the rest (about 12 MB: the game
+    // peaked at 30.3 MB of a 37.6 MB heap with a 2 MB stream cache in the
+    // 64 MB mode): the CIA asks for the 80 MB mode (CMakeLists.txt; 96 MB
+    // crashed the HOME Menu), whose heap (about 53 MB) holds it, and the
+    // heap test (rom_room_mb, the measured rest)
+    // decides. A .3dsx in the Homebrew Launcher's 64 MB streams it. The
+    // cache is what that heap can spare with room to grow. A level load
+    // reads its data once (whole minutes pass without a read), so a bigger
+    // cache only saves the revisits. A game mode's 64 MB ROM is streamed
+    // on both consoles through the same cache.
     desc.rom_new3ds = recomp3ds::GameDesc::RomPlace::Memory;
-    desc.rom_old3ds = recomp3ds::GameDesc::RomPlace::Stream;
+    desc.rom_old3ds = recomp3ds::GameDesc::RomPlace::Auto;
     desc.rom_room_mb = 13;
     desc.rom_cache_mb = 4;
     desc.entry = recomp::GameEntry{

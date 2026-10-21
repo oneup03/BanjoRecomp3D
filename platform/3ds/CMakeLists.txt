@@ -104,4 +104,5 @@ include("${RT64_3DS_DIR}/cmake/Cia.cmake")
 # examples/banjo); only their output is here.
 add_cia(BanjoRecompiled3DS RSF "${RT64_3DS_DIR}/cia/template.rsf" TITLE "${BK_TITLE}" PRODUCT "BANJO-3DS" UNIQUEID 0xF5B4E
         ICON "${CMAKE_CURRENT_LIST_DIR}/icon.png" DESCRIPTION "${BK_DESCRIPTION}"
-        BANNER_CGFX "${CMAKE_CURRENT_LIST_DIR}/cia/banner.cgfx" BANNER_WAV "${CMAKE_CURRENT_LIST_DIR}/cia/banner.wav")
+        BANNER_CGFX "${CMAKE_CURRENT_LIST_DIR}/cia/banner.cgfx" BANNER_WAV "${CMAKE_CURRENT_LIST_DIR}/cia/banner.wav"
+        OLD3DS_MODE 80MB)

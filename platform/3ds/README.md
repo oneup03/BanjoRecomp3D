@@ -127,11 +127,10 @@ and frames that render into a texture (the jiggy transition, the picture
 puzzles) go without. Set Frame rate to Game for the original frame rate.
 
 **Old 3DS / 2DS:** runs at 15-25 fps. Install the CIA rather than running
-the .3dsx: an Old 3DS gives a game only 64 MB, too little to hold the 16 MB
-ROM beside the game, so the game reads the ROM from the SD card as it needs
-it, and the CIA leaves it more room than the Homebrew Launcher does. Loads
-take a little longer than on a New 3DS; play itself isn't slowed by the
-reads. It starts at the game's own frame rate, as it can't afford the
+the .3dsx: the CIA asks an Old 3DS for 80 MB, enough to hold the 16 MB ROM
+in memory. The .3dsx gets only the Homebrew Launcher's 64 MB, so it reads
+the ROM from the SD card as it needs it, and loads take a little longer;
+play itself isn't slowed by the reads. It starts at the game's own frame rate, as it can't afford the
 frames in between, and with particles at Quarter.
 
 To make it run on the 3DS, this build keeps a few things the desktop build
