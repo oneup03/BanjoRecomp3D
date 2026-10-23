@@ -66,7 +66,10 @@ GPR32_STUBS := "func_80253010", "func_80253034", "func_8025C29C",
 # The game's copy also turns on trace_mode: each function starts with
 # TRACE_ENTRY (platform/3ds/trace.h), the runtime's preemption check, so a
 # woken higher-priority game thread (the audio thread) runs at once, as the
-# N64's interrupts had it. The desktop config is left as it is.
+# N64's interrupts had it (the patches' copy too, patches-recomp: a patched
+# function otherwise has no preemption check, and the sampling profile books
+# its time to its nearest traced caller). The desktop configs are left as
+# they are.
 codegen:
 	cd $(ROOT) && { [ -e $(DECOMP_ROM) ] || ln -s decompressed.us.v10.z64 $(DECOMP_ROM); }
 	$(MAKE) patches-elf code-mods game-modes
@@ -96,7 +99,7 @@ mods:
 	$(HOST)/mod_bake bake $(ROOT)/BanjoRecompSyms/bk.us.rev0.syms.toml $(ROOT)/patches/patches.elf $(MODS_OUT) $(BAKE_MODS)
 
 patches-recomp:
-	cd $(ROOT) && cat patches.toml $(MODS_OUT)/patch_hooks.toml > patches.3ds.toml && $(HOST)/N64Recomp patches.3ds.toml
+	cd $(ROOT) && sed -e '/^\[input\]/a\trace_mode = true' patches.toml | cat - $(MODS_OUT)/patch_hooks.toml > patches.3ds.toml && $(HOST)/N64Recomp patches.3ds.toml
 	$(HOST)/file_to_c $(ROOT)/patches/patches.bin bk_patches_bin $(ROOT)/RecompiledPatches/patches_bin.c $(ROOT)/RecompiledPatches/patches_bin.h
 	@grep -m1 -E '^ *0x[0-9a-f]+ +0x[0-9a-f]+ +[0-9a-f]+ +[0-9]+ +\.bss' $(ROOT)/patches/patches.map | \
 	    awk '{ printf "patch .bss: 0x%s + 0x%s bytes\n", $$1, $$3 }' || true
