@@ -30,47 +30,22 @@ namespace {
 // N64 D-pad or L, but some built-in mods do: the D-pad's down for Banjo Bee
 // (its bee flight), all four directions for Transform Anywhere, and L for
 // Ability Anywhere (L + A), Cheats (hold L to moon jump) and Transform
-// Anywhere (its "L + D-pad" mode). While one of them is on, they are either
-// on the touch screen (the default: the buttons stay as they are), as a
-// button for each thing a mod does (mod_touch_buttons below), or on the
-// buttons themselves ("Mod buttons" on the Controls page):
-// - the D-pad directions a mod reads become the N64 D-pad's;
-// - ZL becomes N64 L.
-// The C buttons stay on X, Y, ZR and the C-Stick (and ZL or the D-pad where
-// those are free). An Old 3DS has no ZL, ZR or C-Stick: with Transform
-// Anywhere on the buttons, its camera can't turn with the C buttons.
+// Anywhere (its "L + D-pad" mode). While one of them is on, the touch
+// screen has a button for each thing a mod does (mod_touch_buttons below).
+// A player who wants them on the 3DS's buttons maps those on the Controls
+// page (a D-pad direction to the N64 D-pad's, ZL to N64 L).
 using namespace recomp3ds;
 constexpr const char* kBanjoBee = "bk_recomp_mod_banjo_bee";
 constexpr const char* kTransformAnywhere = "ProxyMM_TransformAnywhere";
 constexpr const char* kAbilityAnywhere = "ProxyMM_AbilityAnywhere";
 constexpr const char* kCheats = "ProxyMM_Cheats";
 
-enum DpadUse { DpadNone, DpadDown, DpadAll };
-struct Buttons {
-    ButtonMap map[16];
-    size_t count = 0;
+const ButtonMap kButtons[] = {
+    { KEY_A, N64_A }, { KEY_B, N64_B }, { KEY_L, N64_Z }, { KEY_R, N64_R }, { KEY_START, N64_START },
+    { KEY_X | KEY_DUP, N64_CUP }, { KEY_Y | KEY_DDOWN, N64_CDOWN },
+    { KEY_ZL | KEY_DLEFT, N64_CLEFT }, { KEY_ZR | KEY_DRIGHT, N64_CRIGHT },
 };
-// Every combination, built once before the game reads them.
-Buttons g_buttons[3][2];    // [DpadUse][ZL is N64 L]
 
-void build_buttons(Buttons& b, DpadUse d, bool zl_is_l) {
-    auto add = [&](uint32_t keys, uint16_t n64) { if (keys != 0) b.map[b.count++] = { keys, n64 }; };
-    add(KEY_A, N64_A); add(KEY_B, N64_B); add(KEY_L, N64_Z); add(KEY_R, N64_R); add(KEY_START, N64_START);
-    add(KEY_X | (d == DpadAll ? 0 : KEY_DUP), N64_CUP);
-    add(KEY_Y | (d == DpadNone ? KEY_DDOWN : 0), N64_CDOWN);
-    add((zl_is_l ? 0 : KEY_ZL) | (d == DpadAll ? 0 : KEY_DLEFT), N64_CLEFT);
-    add(KEY_ZR | (d == DpadAll ? 0 : KEY_DRIGHT), N64_CRIGHT);
-    if (zl_is_l) add(KEY_ZL, N64_L);
-    if (d != DpadNone) add(KEY_DDOWN, N64_DDOWN);
-    if (d == DpadAll) { add(KEY_DUP, N64_DUP); add(KEY_DLEFT, N64_DLEFT); add(KEY_DRIGHT, N64_DRIGHT); }
-}
-
-const char* const kModButtonNames[] = { "Touch screen", "D-pad, ZL" };
-int g_mod_buttons = 0;      // 0: on the touch screen, 1: the D-pad and ZL
-
-// The buttons for the mods on now: at the game's start, whenever one is
-// switched on the Mods page (it takes effect at once), and when "Mod
-// buttons" changes.
 // A mod option's value (an enum's index), 0 when it has none.
 uint32_t mod_option(const char* mod_id, const char* option_id) {
     const recomp::config::ConfigValueVariant v = recomp::mods::get_mod_config_value(mod_id, option_id);
@@ -116,25 +91,14 @@ size_t mod_touch_buttons(TouchButton* out) {
     return n;
 }
 
+// The touch buttons for the mods on now: at the game's start, and whenever
+// one is switched on the Mods page or one of their options changes (it
+// takes effect at once).
 void set_buttons() {
-    auto on = [](const char* id) { return recomp::mods::is_mod_enabled(id); };
-    const bool transform = on(kTransformAnywhere);
-    const DpadUse d = transform ? DpadAll : on(kBanjoBee) ? DpadDown : DpadNone;
-    const bool need_l = transform || on(kAbilityAnywhere) || on(kCheats);
     touch_pad_set(0);
-    if (g_mod_buttons == 0) {
-        const Buttons& b = g_buttons[DpadNone][0];
-        input_set_map(b.map, b.count);
-        TouchButton touch[kTouchButtonsMax];
-        touch_pad_set_buttons(touch, mod_touch_buttons(touch));
-    }
-    else {
-        const Buttons& b = g_buttons[d][need_l ? 1 : 0];
-        input_set_map(b.map, b.count);
-        touch_pad_set_buttons(nullptr, 0);
-    }
+    TouchButton touch[kTouchButtonsMax];
+    touch_pad_set_buttons(touch, mod_touch_buttons(touch));
 }
-void mod_buttons_changed(int) { set_buttons(); }
 void bk_on_init_3ds(uint8_t* rdram, recomp_context* ctx) {
     banjo::bk_on_init(rdram, ctx);
     set_buttons();
@@ -156,7 +120,6 @@ const MenuOption kOptions[] = {
     // camera may turn (recomp_set_right_analog_suppressed).
     { "analog_cam", "Analog camera", 0, 1, &g_bk_analog_cam, kOffOnNames, nullptr, PageControls },
     { "analog_cam_speed", "Analog camera sensitivity", 1, 10, &g_bk_analog_cam_sensitivity, nullptr, nullptr, PageControls },
-    { "mod_buttons", "Mod buttons", 0, 1, &g_mod_buttons, kModButtonNames, mod_buttons_changed, PageControls },
     { "camera_invert", "Invert camera", 0, 3, &g_bk_camera_invert, kInvertNames, nullptr, PageControls },
     { "first_person_invert", "Invert first person view", 0, 3, &g_bk_first_person_invert, kInvertNames, nullptr, PageControls },
     { "fly_swim_invert", "Invert flying & swimming", 0, 3, &g_bk_fly_swim_invert, kInvertNames, nullptr, PageControls },
@@ -406,11 +369,8 @@ int main(int argc, char** argv) {
     // core 1. At the Old clock, over the attract demos: 17.94 lists a second
     // without it, 19.40 with it.
     desc.two_cores_read_on_game_core = true;
-    for (int d = 0; d < 3; d++) {
-        for (int l = 0; l < 2; l++) build_buttons(g_buttons[d][l], (DpadUse)d, l != 0);
-    }
-    desc.button_map = g_buttons[DpadNone][0].map;
-    desc.button_map_count = g_buttons[DpadNone][0].count;
+    desc.button_map = kButtons;
+    desc.button_map_count = sizeof(kButtons) / sizeof(kButtons[0]);
     desc.menu_options = kOptions;
     desc.menu_option_count = sizeof(kOptions) / sizeof(kOptions[0]);
     desc.menu_defaults = kDefaults;

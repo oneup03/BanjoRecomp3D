@@ -99,10 +99,12 @@ saves.
 | Circle Pad | analog stick |
 | C-Stick | C buttons, but not C-Up (first person) unless "C-Stick up" is on; or the analog camera (Controls settings) |
 
-The Controls page's X / Y buttons setting puts C-Right on X and C-Left on Y
-instead (C-Up and C-Down stay on the D-pad). The Game page's Performance
-monitor setting hides the bottom screen's frame rate and text; touch
-buttons stay.
+The Controls page maps each button (A, B, X, Y, L, R, ZL, ZR and the
+D-pad's directions) to any N64 button, adds up to two N64 buttons on the
+touch screen, can turn off C-Stick up and down, and resets it all with
+Reset controls. The Game page's Performance monitor setting hides the
+bottom screen's frame rate and text; touch buttons stay. The Game page
+also sets each screen's brightness.
 
 SELECT opens the settings on the bottom screen. Some built-in mods add
 buttons on the touch screen while they're on: see Mods.
@@ -184,21 +186,12 @@ on, **Croc / Walrus** also toggles bee flight, and in Transform Anywhere's
 default "Button Mode: D-pad", **Bee flight** also turns Banjo into the
 crocodile. Set Button Mode to "L + D-pad" to keep **Bee flight** to itself.
 
-"Mod buttons" on the Controls page can put the N64 buttons these mods read
-on the 3DS's buttons instead, where they work as on an N64 controller (hold
-L and press A for Ability Anywhere, the D-pad for Transform Anywhere): the
-D-pad's directions those mods use become the N64 D-pad's, and ZL becomes
-N64 L. The changes add up when several mods are on:
-
-| Mod on | D-pad | ZL | C-Left is on |
-|---|---|---|---|
-| Banjo Bee | down is the N64 D-pad's down (C-Down stays on Y) | C-Left | ZL, D-pad left, C-Stick |
-| Ability Anywhere, Cheats | C buttons | N64 L | D-pad left, C-Stick |
-| Transform Anywhere | the N64 D-pad | N64 L | C-Stick |
-
-C-Up stays on X, C-Down on Y (unless X / Y buttons says
-C-Left/Right) and C-Right on ZR throughout. An Old 3DS has no
-ZL, ZR or C-Stick, so keep "Mod buttons" on the touch screen there.
+To play these mods with the 3DS's buttons instead, map the N64 buttons
+they read on the Controls page: a D-pad direction to the N64 D-pad's
+(D-pad down to D-Down for Banjo Bee, all four for Transform Anywhere's
+D-pad mode) and ZL to N64 L (Ability Anywhere's L + A, Cheats' moon jump).
+The touch buttons stay either way. An Old 3DS has no ZL, ZR or C-Stick,
+so the touch buttons suit it best.
 
 In a game mode, Exit to Lair stays off and isn't listed: it returns to the
 original game's lair entrances, which the game modes rework. It stays on for
