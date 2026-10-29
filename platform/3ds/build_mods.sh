@@ -6,12 +6,18 @@
 # and RecompModTool, against the bk-decomp headers and BanjoRecompSyms it
 # pins. Those submodules are not checked out: one blobless clone of each
 # serves every mod, and only the pinned commit's files a mod build reads
-# (the decomp's include/) are exported.
+# (the decomp's include/) are exported. A mods/<repo>.3ds.patch, where
+# there is one, is applied to the work copy (the Asset Expansion Pak's heap,
+# sized for the 3DS's RDRAM).
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
 tool=${1:?RecompModTool}; out=${2:?out dir}
 cc=${3:-clang}; ld=${4:-ld.lld}
+# As the patches build (patches/Makefile): clang 16 and later make a mismatch
+# of pointer types an error, which the mods' own toolchains only warned of
+# (the Asset Expansion Pak passes an s32 * for a u8 *).
+cc="$cc -Wno-error=incompatible-pointer-types"
 work=$root/build-mods
 mkdir -p "$work" "$out"
 rm -f "$out"/*.nrm
@@ -46,6 +52,9 @@ grep -v '^\s*#' "$here/mods.list" | while read -r repo package; do
     # A work copy, so the submodule stays clean.
     mkdir -p "$dst"
     rsync -a --delete --exclude .git --exclude build --exclude bk-decomp --exclude BanjoRecompSyms "$src/" "$dst/"
+    if [ -f "$here/mods/$repo.3ds.patch" ]; then
+        patch -s -p1 -d "$dst" < "$here/mods/$repo.3ds.patch"
+    fi
     ln -sfn "$(pinned "$src" bk-decomp include)" "$dst/bk-decomp"
     ln -sfn "$(pinned "$src" BanjoRecompSyms .)" "$dst/BanjoRecompSyms"
     # A thumbnail the mod lists but its repository lacks (BanjoBeeMod): the

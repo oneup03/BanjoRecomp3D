@@ -1,0 +1,46 @@
+--- a/src/main.c
++++ b/src/main.c
+@@ -252,6 +252,25 @@
+ // Static pointers to our allocated glyph buffers (so they persist)
+ static u8 *glyph_bufs[8];
+ 
++// Nintendo 3DS build (BanjoRecomp3D platform/3ds): the hook below runs again
++// whenever the game sets its fonts up, and allocated new buffers each time,
++// never freeing the old ones; the 3DS's recomp heap is small and shared with
++// the game's patches. Each glyph's buffer is allocated once (again only if
++// the glyph grows) and refilled.
++static s32 glyph_buf_sizes[8];
++static u8 *glyph_buffer(s32 i, s32 size) {
++    if (glyph_bufs[i] != NULL && glyph_buf_sizes[i] >= size) {
++        return glyph_bufs[i];
++    }
++    if (glyph_bufs[i] != NULL) {
++        recomp_free(glyph_bufs[i]);
++        glyph_bufs[i] = NULL;
++    }
++    u8 *buf = (u8 *)recomp_alloc((unsigned long)size);
++    glyph_buf_sizes[i] = (buf != NULL) ? size : 0;
++    return buf;
++}
++
+ // Find the most common non-zero palette index in CI8 pixel data
+ static u8 findForegroundIndex(u8 *pixels, s32 size) {
+     // Count occurrences of each non-zero index
+@@ -346,7 +365,7 @@
+ 
+         // Allocate buffer for flipped glyph
+         s32 total_size = 8 + pixel_size;
+-        u8 *buf = (u8 *)recomp_alloc((unsigned long)(total_size + 16));
++        u8 *buf = glyph_buffer(i, total_size + 16);
+         if (buf == NULL) continue;
+         glyph_bufs[i] = buf;
+ 
+@@ -394,7 +413,7 @@
+ 
+         // Allocate same size: header (8 bytes) + pixel data
+         s32 total_size = 8 + pixel_size;
+-        u8 *buf = (u8 *)recomp_alloc((unsigned long)(total_size + 16));
++        u8 *buf = glyph_buffer(i, total_size + 16);
+         if (buf == NULL) continue;
+         glyph_bufs[i] = buf;
+ 

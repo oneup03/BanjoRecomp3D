@@ -1,0 +1,37 @@
+--- a/src/asset_expansion_pak.c
++++ b/src/asset_expansion_pak.c
+@@ -31,7 +31,12 @@
+ // Replacement data arrays.
+ 
+ #define MAX_ASSETS 0x4000
+-#define ASSET_REPLACEMENT_HEAP_SIZE 0x800000
++// Nintendo 3DS build (BanjoRecomp3D platform/3ds): 2.5 MB rather than 8. The
++// 3DS's RDRAM is 16 MB, and the mods' memory and the recomp heap share the
++// 3 MB above the game's patches. The game's own heap, which held these
++// assets before, is 2.06 MB; o1heap rounds each block up to a power of two,
++// hence the headroom.
++#define ASSET_REPLACEMENT_HEAP_SIZE 0x280000
+ 
+ void *asset_replacements_data[MAX_ASSETS];
+ u16 asset_replacements_data_indices[MAX_ASSETS];
+@@ -115,7 +120,19 @@
+ }
+ 
+ void *bk_recomp_aep_malloc(s32 size) {
+-    return o1heapAllocate(asset_replacement_heap_instance, size);
++    void *ptr = o1heapAllocate(asset_replacement_heap_instance, size);
++    // Nintendo 3DS build: the heap's peak in the log, each time it passes
++    // another 256 KB, and a line if it ever runs out.
++    static u32 reported_peak = 0;
++    const O1HeapDiagnostics diag = o1heapGetDiagnostics(asset_replacement_heap_instance);
++    if (diag.peak_allocated >= reported_peak + 0x40000) {
++        reported_peak = diag.peak_allocated & ~0x3FFFF;
++        recomp_printf("AEP heap peak %u KB of %u KB\n", (u32)(diag.peak_allocated / 1024), (u32)(ASSET_REPLACEMENT_HEAP_SIZE / 1024));
++    }
++    if (ptr == NULL) {
++        recomp_printf("AEP heap out of memory: %d bytes asked, %u KB in use of %u KB\n", size, (u32)(diag.allocated / 1024), (u32)(ASSET_REPLACEMENT_HEAP_SIZE / 1024));
++    }
++    return ptr;
+ }
+ 
+ void bk_recomp_aep_free(void *ptr) {

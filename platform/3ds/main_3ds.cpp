@@ -9,6 +9,7 @@ extern "C" {
 }
 
 #include "recomp3ds.h"
+#include "recompui_stubs.h"
 #include "ovl_patches.hpp"
 #include "banjo_game.h"
 #include "recomp_data.h"
@@ -95,7 +96,6 @@ size_t mod_touch_buttons(TouchButton* out) {
 // one is switched on the Mods page or one of their options changes (it
 // takes effect at once).
 void set_buttons() {
-    touch_pad_set(0);
     TouchButton touch[kTouchButtonsMax];
     touch_pad_set_buttons(touch, mod_touch_buttons(touch));
 }
@@ -135,7 +135,19 @@ const MenuOption kOptions[] = {
 // to Lair returns to the original game's lair entrances, which the hacks
 // rework (Nostalgia 64 replaces 60-odd of the lair's warps). No built-in mod
 // replaces a function a game mode replaces (the mode would fail to load).
-const char* const kModsNotInGameModes[] = { "ProxyMM_ExitToLair" };
+// The languages and their asset system replace the original game's text,
+// which the game modes rework.
+const char* const kModsNotInGameModes[] = {
+    "ProxyMM_ExitToLair", "bk_spanish_translation", "de_v10lator_ger", "bk_recomp_asset_expansion_pak",
+};
+
+// The translations (mods.list): one at a time, on the Mods page's Language
+// row (GameDesc::mod_choice_*), applied at the next start: they replace the
+// game's text assets as the asset cache starts. Each needs the Asset
+// Expansion Pak (bk_recomp_asset_expansion_pak), which the row turns on
+// with it and doesn't list. ASCII names: the menu's console font.
+const char* const kLanguageIds[] = { "bk_spanish_translation", "de_v10lator_ger" };
+const char* const kLanguageNames[] = { "Espanol", "Deutsch" };
 
 // Defaults for the library's rows; settings.ini, once written, keeps what the
 // player chose.
@@ -239,6 +251,9 @@ int main(int argc, char** argv) {
     REGISTER_FUNC(recomp_get_inverted_axes);
     REGISTER_FUNC(recomp_get_analog_inverted_axes);
     recomputil::register_data_api_exports();
+    // The desktop frontend's recompui API, as do-nothing stand-ins: the
+    // German translation imports it for an error popup the 3DS never shows.
+    recomp3ds::register_recompui_stubs();
     // Extension data for two object types: Props and ActorMarkers.
     recomputil::init_extended_object_data(2);
     recomp_register_static_mods();
@@ -251,6 +266,11 @@ int main(int argc, char** argv) {
     desc.on_mod_switched = mod_switched;
     desc.on_mod_option_changed = mod_option_changed;
     desc.mods_not_in_game_modes_count = sizeof(kModsNotInGameModes) / sizeof(kModsNotInGameModes[0]);
+    desc.mod_choice_label = "Language (at restart)";
+    desc.mod_choice_off_name = "English";
+    desc.mod_choice_ids = kLanguageIds;
+    desc.mod_choice_names = kLanguageNames;
+    desc.mod_choice_count = sizeof(kLanguageIds) / sizeof(kLanguageIds[0]);
     desc.sd_dir = "BanjoRecomp";
     // The ROM (16 MB) is held in memory on a New 3DS. On an Old 3DS it
     // needs 44 MB beside RDRAM (16 MB) and the rest (about 12 MB: the game

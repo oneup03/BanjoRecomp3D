@@ -12,9 +12,13 @@ set(BK_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
 set(RT64_3DS_DIR "${BK_ROOT}/lib/rt64-3ds" CACHE PATH "rt64-3ds checkout")
 set(RT64_3DS_NMR_DIR "${BK_ROOT}/lib/N64ModernRuntime")
 # The patches' RAM (patches/patches.ld, from 0x80801000) holds the enlarged
-# display-list buffers, the audio heap and the frame buffers: about 4 MB,
-# past rt64-3ds's default heap start. The build checks the link map.
-set(RT64_3DS_HEAP_START 0x80D00000)
+# display-list buffers, the audio heap and the frame buffers: past
+# rt64-3ds's default heap start, ending at 0x80BAFB70 (3.7 MB). The heap
+# starts at the next MB, which leaves the patches 321 KB to grow and the
+# built-in mods and the recomp heap the 4 MB above it: a language takes
+# 2.85 MB of it (the Asset Expansion Pak's 2.5 MB heap, the translation)
+# and builds its dialogue in the recomp heap. The build checks the link map.
+set(RT64_3DS_HEAP_START 0x80C00000)
 # The runtime's mod system, for mods baked into the executable (below).
 set(RT64_3DS_STATIC_MODS ON)
 # 32-bit N64 registers (N64Recomp's recomp.h, RECOMP_GPR32): the ARM11's own

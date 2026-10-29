@@ -36,3 +36,15 @@
 	path = platform/3ds/mods/BK-Sir-Slush-Configuration
 	url = https://github.com/Thermopolis-D/BK-Sir-Slush-Configuration.git
 	update = none
+[submodule "platform/3ds/mods/BKRecompAssetExpansionPak"]
+	path = platform/3ds/mods/BKRecompAssetExpansionPak
+	url = https://github.com/DarioSamo/BKRecompAssetExpansionPak.git
+	update = none
+[submodule "platform/3ds/mods/BKSpanish"]
+	path = platform/3ds/mods/BKSpanish
+	url = https://github.com/wilrojasdev/BKSpanish.git
+	update = none
+[submodule "platform/3ds/mods/BK-german"]
+	path = platform/3ds/mods/BK-german
+	url = https://github.com/V10lator/BK-german.git
+	update = none

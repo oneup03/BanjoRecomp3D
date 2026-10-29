@@ -11,3 +11,10 @@ ProxyBK_RecompMods Cheats
 BanjoBeeMod
 QuietTalonTrot
 BK-Sir-Slush-Configuration
+# The languages (one at a time: the Mods page's Language row) and the asset
+# system they replace the game's text through, which is on only with one.
+# For the 3DS's memory, mods/BKRecompAssetExpansionPak.3ds.patch sizes its
+# heap and mods/BKSpanish.3ds.patch allocates Spanish's glyphs once.
+BKRecompAssetExpansionPak
+BKSpanish
+BK-german

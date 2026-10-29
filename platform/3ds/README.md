@@ -197,6 +197,24 @@ In a game mode, Exit to Lair stays off and isn't listed: it returns to the
 original game's lair entrances, which the game modes rework. It stays on for
 the game itself if you turned it on.
 
+### Languages
+
+The Mods page's **Language (at restart)** row plays the game in English (the
+original), Spanish or German. The choice takes effect the next time the game
+starts.
+
+| Language | Mod | Author |
+|---|---|---|
+| Espanol | [Spanish Language](https://github.com/wilrojasdev/BKSpanish) 3.2.0: Latin American Spanish, with dialogue, menus, the quiz and cutscenes. By its author's note the translation was generated with AI and may contain errors, and the worlds' signs aren't translated yet. | wilrojasdev |
+| Deutsch | [German](https://github.com/V10lator/BK-german) 1.3.7 | V10lator |
+
+Both are CC0 and built from source like the other mods. They replace the
+game's text through Darío's
+[Asset Expansion Pak](https://github.com/DarioSamo/BKRecompAssetExpansionPak)
+(CC0), which the Language row turns on with them; on the 3DS its asset heap
+is 2.5 MB rather than 8, to fit the game's memory. Languages stay off in the
+game modes, whose text differs.
+
 ## AI use
 
 The 3DS port, including this build's code and documentation and the
