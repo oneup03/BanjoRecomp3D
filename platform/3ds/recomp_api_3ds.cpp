@@ -19,6 +19,12 @@
 #include "rt64_3ds.h"
 #include "bk_settings.h"
 
+// libctru's single headers carry no extern "C" (only <3ds.h> wraps them).
+extern "C" {
+#include <3ds/types.h>
+#include <3ds/services/apt.h>
+}
+
 namespace recomp3ds {
     void input_get_right_stick(float* x, float* y);   // input_hid.cpp
     void input_set_cstick_buttons(bool on);
@@ -168,9 +174,13 @@ extern "C" void recomp_get_analog_inverted_axes(uint8_t* rdram, recomp_context* 
 extern "C" void recomp_get_flying_and_swimming_inverted_axes(uint8_t* rdram, recomp_context* ctx) { return_axes(rdram, ctx, g_bk_fly_swim_invert); }
 extern "C" void recomp_get_first_person_inverted_axes(uint8_t* rdram, recomp_context* ctx) { return_axes(rdram, ctx, g_bk_first_person_invert); }
 
+// The analog camera reads the C-Stick alone, which an Old 3DS hasn't (its
+// row is hidden there): off there whatever settings.ini says, a file from a
+// New 3DS included, so the C buttons keep the camera.
 extern "C" void recomp_get_analog_cam_enabled(uint8_t* rdram, recomp_context* ctx) {
     (void)rdram;
-    _return<s32>(ctx, g_bk_analog_cam != 0);
+    static const bool new_3ds = [] { bool n = false; APT_CheckNew3DS(&n); return n; }();
+    _return<s32>(ctx, new_3ds && g_bk_analog_cam != 0);
 }
 
 extern "C" void recomp_get_note_saving_enabled(uint8_t* rdram, recomp_context* ctx) {

@@ -118,8 +118,10 @@ const char* const kParticleNames[] = { "Full", "Half", "Quarter" };
 const MenuOption kOptions[] = {
     // The game turns the C-Stick's C buttons off itself while the analog
     // camera may turn (recomp_set_right_analog_suppressed).
-    { "analog_cam", "Analog camera", 0, 1, &g_bk_analog_cam, kOffOnNames, nullptr, PageControls },
-    { "analog_cam_speed", "Analog camera sensitivity", 1, 10, &g_bk_analog_cam_sensitivity, nullptr, nullptr, PageControls },
+    // Both read the C-Stick alone, which an Old 3DS hasn't: hidden there
+    // (recomp_get_analog_cam_enabled also answers off there).
+    { "analog_cam", "Analog camera", 0, 1, &g_bk_analog_cam, kOffOnNames, nullptr, PageControls, 1, nullptr, nullptr, true },
+    { "analog_cam_speed", "Analog camera sensitivity", 1, 10, &g_bk_analog_cam_sensitivity, nullptr, nullptr, PageControls, 1, nullptr, nullptr, true },
     { "camera_invert", "Invert camera", 0, 3, &g_bk_camera_invert, kInvertNames, nullptr, PageControls },
     { "first_person_invert", "Invert first person view", 0, 3, &g_bk_first_person_invert, kInvertNames, nullptr, PageControls },
     { "fly_swim_invert", "Invert flying & swimming", 0, 3, &g_bk_fly_swim_invert, kInvertNames, nullptr, PageControls },
