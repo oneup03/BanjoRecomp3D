@@ -201,6 +201,13 @@ extern "C" void recomp_get_jinjo_saving_enabled(uint8_t* rdram, recomp_context* 
     _return<s32>(ctx, g_bk_note_saving == BK_SAVING_JINJOS || g_bk_note_saving == BK_SAVING_BOTH);
 }
 
+// patches/hud_screen_patches.c: the HUD on the touch screen (the Game page's
+// HUD row), where the pause's counters stay shown.
+extern "C" void recomp_get_hud_on_bottom(uint8_t* rdram, recomp_context* ctx) {
+    (void)rdram;
+    _return<s32>(ctx, recomp3ds::hud_on_bottom() ? 1 : 0);
+}
+
 // The analog camera's stick: the C-Stick, always (the desktop reads it
 // without the suppression below).
 extern "C" void recomp_get_right_analog_inputs(uint8_t* rdram, recomp_context* ctx) {

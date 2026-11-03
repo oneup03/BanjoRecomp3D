@@ -2,6 +2,11 @@
 #include "transform_ids.h"
 #include "functions.h"
 
+#ifdef BK_3DS
+#include "rt64_3ds_gbi.h"
+bool hud_screen_print_shift(u32 id, s32 *dx, s32 *dy);
+#endif
+
 typedef struct {
     u8 unk0;
     u8 unk1;
@@ -408,6 +413,11 @@ RECOMP_PATCH void printbuffer_draw(Gfx **gfx, Mtx **mtx, Vtx **vtx) {
 
     // @recomp Set up an orthographic projection that will be used for all letters by default.
     u32 curOrigin = G_EX_ORIGIN_NONE;
+#ifdef BK_3DS
+    bool curBottom = FALSE;
+    s32 curDx = 0;
+    s32 curDy = 0;
+#endif
     gEXSetViewportAlign((*gfx)++, G_EX_ORIGIN_NONE, 0, 0);
     gEXSetRectAlign((*gfx)++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
     viewport_setRenderViewportAndOrthoMatrix(gfx, mtx);
@@ -432,6 +442,20 @@ RECOMP_PATCH void printbuffer_draw(Gfx **gfx, Mtx **mtx, Vtx **vtx) {
                 gEXSetRectAlign((*gfx)++, curOrigin, curOrigin, viewportOffset, 0, viewportOffset, 0);
                 viewport_setRenderViewportAndOrthoMatrix(gfx, mtx);
             }
+#ifdef BK_3DS
+            // @recomp A counter's number goes to the 3DS's touch screen with its counter (hud_screen_patches.c).
+            s32 dx, dy;
+            bool onBottom = hud_screen_print_shift(print_sPrintBufferIDs[bufferIndex], &dx, &dy);
+            if (onBottom && (!curBottom || dx != curDx || dy != curDy)) {
+                gEX3DSBottomScreen((*gfx)++, dx, dy);
+                curDx = dx;
+                curDy = dy;
+            }
+            else if (!onBottom && curBottom) {
+                gEX3DSTopScreen((*gfx)++);
+            }
+            curBottom = onBottom;
+#endif
 
             _x = (f32)print_sCurrentPtr->x;
             _y = (f32)print_sCurrentPtr->y;
@@ -484,6 +508,12 @@ RECOMP_PATCH void printbuffer_draw(Gfx **gfx, Mtx **mtx, Vtx **vtx) {
             print_sCurrentPtr->string = NULL;
         }
     }
+
+#ifdef BK_3DS
+    if (curBottom) {
+        gEX3DSTopScreen((*gfx)++);
+    }
+#endif
 
     // @recomp Clear the alignment and the scissor. Also clear the assigned transform group for the letters.
     gEXSetViewportAlign((*gfx)++, G_EX_ORIGIN_NONE, 0, 0);

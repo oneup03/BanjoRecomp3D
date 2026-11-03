@@ -47,7 +47,7 @@ endif()
 file(GLOB FUNC_SOURCES "${BK_ROOT}/RecompiledFuncs/*.c")
 add_library(RecompiledFuncs STATIC ${FUNC_SOURCES} "${BK_ROOT}/RecompiledFuncs/lookup.cpp")
 target_include_directories(RecompiledFuncs PRIVATE
-    "${BK_ROOT}/RecompiledFuncs" "${CMAKE_CURRENT_LIST_DIR}"
+    "${BK_ROOT}/RecompiledFuncs" "${CMAKE_CURRENT_LIST_DIR}" "${RT64_3DS_DIR}/include"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/ultramodern/include" "${RT64_3DS_NMR_DIR}/librecomp/include")
 target_compile_options(RecompiledFuncs PRIVATE
     -O2 -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration
@@ -57,10 +57,19 @@ add_library(RecompiledPatches STATIC
     "${BK_ROOT}/RecompiledPatches/patches.c"
     "${BK_ROOT}/RecompiledPatches/patches_bin.c")
 target_include_directories(RecompiledPatches PRIVATE
-    "${BK_ROOT}/RecompiledPatches" "${CMAKE_CURRENT_LIST_DIR}"
+    "${BK_ROOT}/RecompiledPatches" "${CMAKE_CURRENT_LIST_DIR}" "${RT64_3DS_DIR}/include"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/ultramodern/include" "${RT64_3DS_NMR_DIR}/librecomp/include")
 target_compile_options(RecompiledPatches PRIVATE
     -O2 -fno-strict-aliasing -w -Wno-implicit-function-declaration -Wno-error=implicit-function-declaration)
+# The running function's name for the sampling profile of the game
+# (settings.ini's dbg_profile=2), kept by trace.h in every call: off by
+# default, as it made the game's code 8% bigger (the profile then counts
+# every sample as dropped).
+option(BK_GAME_PROFILE "trace.h names the running game function, for dbg_profile=2" OFF)
+if(BK_GAME_PROFILE)
+    target_compile_definitions(RecompiledFuncs PRIVATE BK_GAME_PROFILE)
+    target_compile_definitions(RecompiledPatches PRIVATE BK_GAME_PROFILE)
+endif()
 
 # Mods baked into the executable: rt64-3ds tools/mod_bake's output for the
 # Makefile's BAKE_MODS (each mod's code, the dispatch table the recompiled
@@ -82,7 +91,7 @@ add_executable(BanjoRecompiled3DS
 )
 # shim/ stands in for the desktop UI library's headers (message boxes only).
 target_include_directories(BanjoRecompiled3DS PRIVATE
-    "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/shim" "${BK_ROOT}/include" "${BK_ROOT}"
+    "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/shim" "${BK_ROOT}/include" "${BK_ROOT}" "${RT64_3DS_DIR}/include"
     "${BK_ROOT}/lib/SlotMap" "${BK_ROOT}/RecompiledFuncs" "${BK_ROOT}/RecompiledPatches"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/thirdparty" "${RT64_3DS_NMR_DIR}/thirdparty/miniz")
 target_compile_options(BanjoRecompiled3DS PRIVATE -O2 -Wno-unused-parameter)

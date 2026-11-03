@@ -1,8 +1,8 @@
 # Nintendo 3DS build
 
 Banjo: Recompiled for the Nintendo 3DS family, with stereoscopic 3D. A New
-3DS or New 2DS XL is recommended; an Old 3DS or 2DS runs it, but slowly
-(see Performance). The renderer and platform layer are
+3DS or New 2DS XL runs it at 60 fps most of the time, an Old 3DS or 2DS at
+20-30 fps (see Performance). The renderer and platform layer are
 [rt64-3ds](https://github.com/oneup03/rt64-3ds) (`lib/rt64-3ds`).
 
 ## Installing
@@ -22,8 +22,8 @@ Download the latest build from the
 
 Both need your own ROM: the US 1.0 version of Banjo-Kazooie in .z64 format
 (the file the desktop version asks for), at `sdmc:/3ds/BanjoRecomp/BK.z64`.
-The game checks the ROM's hash at start and deletes a file that does not
-match, so copy it rather than move it.
+The game checks the ROM's hash at start: if it's another version or
+damaged, it says so and leaves the file where it is.
 
 Sound needs nothing more: the game brings its own DSP firmware, OpenDSP
 (BSD 2-Clause, Copyright (c) 2026 Cellenseres; its licence is
@@ -41,6 +41,9 @@ sdmc:/3ds/
     BanjoRecomp.3dsx       the program (not needed with the CIA installed)
     BK.z64                 your ROM
     OpenDSP-LICENSE.txt    OpenDSP's licence (from the release zip)
+    settings.ini           the settings (written by the game)
+    saves/                 the saves, a folder for each game mode's
+    screenshots/           SELECT-hold screenshots
     mods/                  the game modes' ROMs, for those you play (see Game modes)
       bk_jiggies_of_time.z64       BK The Jiggies of Time
       bk_jiggies_of_time.z64.ok
@@ -101,17 +104,44 @@ saves.
 
 The Controls page maps each button (A, B, X, Y, L, R, ZL, ZR and the
 D-pad's directions) to any N64 button, adds up to two N64 buttons on the
-touch screen, can turn off C-Stick up and down, and resets it all with
-Reset controls. The Game page's Performance monitor setting hides the
-bottom screen's frame rate and text; touch buttons stay. The Game page
-also sets each screen's brightness.
+touch screen, sets the Circle Pad's and C-Stick's deadzones, inverts the
+camera, the first-person view, and flying and swimming (X, Y or both), can
+turn off C-Stick up and down, and resets it all with Reset controls. The
+Game page's Performance monitor setting hides the bottom screen's frame
+rate and text; touch buttons stay. The Game page also sets each screen's
+brightness.
 
-SELECT opens the settings on the bottom screen. Some built-in mods add
-buttons on the touch screen while they're on: see Mods.
+SELECT opens the settings on the bottom screen; changes are kept in
+`settings.ini`. Some built-in mods add buttons on the touch screen while
+they're on: see Mods. The Game page also holds Audio and Particles (see
+Performance), Music volume and Note & Jinjo saving: Both by default, as on
+the desktop, so notes and jinjos you collect stay collected when you leave
+a world or lose a life; Off is the original game's rule. A change to it
+applies the next time you enter or leave a world.
+
+The HUD is on the top screen by default. The Game page's HUD row can put
+its counters on the touch screen instead, leaving the top screen to the
+game. On the touch screen the pause screen's counters (honeycombs, notes,
+eggs, feathers, jiggies, Mumbo tokens, jinjos, lives) stay up through play
+instead of sliding away after a few seconds; a jiggy or token collected
+counts up those totals rather than showing a second counter. Only what
+counts in the area shows: the jinjos in the nine worlds, the notes
+everywhere but Spiral Mountain. The file select and cutscenes show none,
+and the Totals page hides them while it's open. The honeycombs sit at the top
+in the middle and the other counters down the left (the air across the top
+right), leaving the right half to touch buttons; more buttons than fit
+there take their usual rows over the HUD with see-through fills. The pause
+menu, dialogue and challenge timers stay on the top screen. The bottom
+screen's frame rate and text are off by default (Performance monitor);
+turned on, they draw over the counters there.
 
 Holding SELECT for a second saves a screenshot to
 `sdmc:/3ds/BanjoRecomp/screenshots/`: both eyes when 3D is on, and the touch
 screen, as BMPs.
+
+HOME pauses the game and asks on the touch screen whether to quit: A quits,
+B goes back to the game. The HOME Menu itself isn't offered while the game
+runs.
 
 ## Stereo 3D
 
@@ -136,12 +166,20 @@ one at 30, two at 20. The heaviest scenes drop back toward the game's rate,
 and frames that render into a texture (the jiggy transition, the picture
 puzzles) go without. Set Frame rate to Game for the original frame rate.
 
-**Old 3DS / 2DS:** runs at 15-25 fps. Install the CIA rather than running
-the .3dsx: the CIA asks an Old 3DS for 80 MB, enough to hold the 16 MB ROM
-in memory. The .3dsx gets only the Homebrew Launcher's 64 MB, so it reads
-the ROM from the SD card as it needs it, and loads take a little longer;
-play itself isn't slowed by the reads. It starts at the game's own frame rate, as it can't afford the
-frames in between, and with particles at Quarter.
+**Old 3DS / 2DS:** runs at 20-30 fps: about 25 in play, where the game asks
+for 30, and 20 in the cutscenes that run at 20. Install the CIA rather than
+running the .3dsx: the CIA asks an Old 3DS for 80 MB, enough to hold the
+16 MB ROM in memory. The .3dsx gets only the Homebrew Launcher's 64 MB, so
+it reads the ROM from the SD card as it needs it, and loads take a little
+longer; play itself isn't slowed by the reads. It starts at the game's own
+frame rate, as it can't afford the frames in between, with particles at
+Quarter and Audio at Low priority.
+
+The Game page's **Audio** row sets how the sound shares the processor with
+the game. High priority, the New 3DS's default, interrupts the game whenever
+the sound is about to run short. Low priority, the Old 3DS's default, never
+interrupts it: about 5% more frames on an Old 3DS, but in busy scenes the
+music can run a little slow or crackle. Off turns the sound off.
 
 To make it run on the 3DS, this build keeps a few things the desktop build
 turns off. The game's own culling stays on and far objects use their
@@ -166,18 +204,19 @@ other buttons are the 3DS's, as in Controls.
 |---|---|---|---|
 | Ability Anywhere | ProxySaw | Flight and the Shock Jump without their pads | Standing or walking, tap **Fly / Shock jump** to take off, or hold it to Shock Jump. With "Require Ability Unlocks" on, only the moves you've learned. |
 | Banjo Bee | TSR Stormed | Fly as Banjo Bee | **Bee flight** turns bee flight on or off (a message says which); then jump to fly. |
-| Cheats | ProxySaw | Moon jump, extra speed, infinite health, lives, ammo and air | Each is an option. Moon Jump: hold **Moon jump** to float up. Speed Modifier: hold R to run faster. The rest need no buttons. |
+| Cheats | ProxySaw | Moon jump, extra speed, infinite health, lives, eggs and feathers, and air; Bottles' silly looks | Each is an option. Moon Jump: hold **Moon jump** to float up. Speed Modifier: hold R to run faster. The rest need no buttons. |
 | Exit To Lair | ProxySaw | The game's unused "Exit to Lair" pause option | Pause (START) inside a world and choose it. |
 | Quiet Talon Trot | PunishedBigs | Mutes Kazooie's running noise | Nothing to press; options choose which noises. |
-| Sir Slush Configuration | Thermopolis | Tunes the Freezeezy Peak snowmen's snowballs | Nothing to press; options set their attacks. |
-| Skip It | ProxySaw | Skips cutscenes, text and Bottles' lessons, speeds up Mumbo, boots straight to the file select | Each is an option. "Skip Cutscenes: Press Start" skips a cutscene with START; the rest work by themselves. |
-| Toggle Trot | ProxySaw | Talon Trot stays on without holding Z | Start Talon Trot as usual (hold the 3DS's L, which is Z, and press C-Left), let go and keep trotting; press it again to stop. |
+| Sir Slush Configuration | Thermopolis | Tunes the Freezeezy Peak snowmen's snowballs | Nothing to press; options set their attacks. With its defaults they throw every 5 seconds (the original game: 0.8), and no faster while you fly. |
+| Skip It | ProxySaw | Skips cutscenes, Bottles' lessons and Mumbo's talks and transformation scenes, speeds up or skips text, boots straight to the file select | Each is an option. "Skip Cutscenes: Press Start" skips a cutscene with START; the rest work by themselves. |
+| Toggle Trot | ProxySaw | Talon Trot stays on without holding Z | Start Talon Trot as usual (hold the 3DS's L, which is Z, and press C-Left: ZL or D-pad left), then let go of L straight away and keep trotting; press and release L again to stop. Held longer, L stops the trot when you let go, as in the original. |
 | Transform Anywhere | ProxySaw | Mumbo's transformations anywhere | **Washing machine**, **Croc / Walrus**, **Bee**, **Termite / Pumpkin**: each turns Banjo into its form; pressing it again moves to its next form, then back to Banjo. "Token Payment" (on at first) allows only the forms you've paid Mumbo's tokens for; turn it off for all of them. "Allowed Transformations: Current World" gives one **Transform** button, for the world you're in, and "Banjo" a **Back to Banjo** button. |
 
 All are CC0 and built from source (`platform/3ds/mods/`, `mods.list`).
 
 While one of these mods is on, its buttons appear on the touch screen under
-the status lines: touch one to use it (one at a time). None needs another
+the status lines (in its right half while the HUD is there): touch one to
+use it (one at a time). None needs another
 button held with it, so one finger plays them all, on an Old 3DS too. They
 make way while the settings are open.
 
@@ -227,16 +266,20 @@ under the developer's direction and with their testing on real consoles.
 git submodule update --init --recursive     # rt64-3ds has a submodule of its own
 git submodule update --init --checkout platform/3ds/mods   # the built-in mods' sources
 make -C platform/3ds nmr-patch host-tools   # once
-make -C platform/3ds codegen                # after changing the ROM inputs, the patches or mods.list
+make -C platform/3ds codegen                # after changing the ROM inputs or mods.list
+make -C platform/3ds patches                # after changing patches/*.c alone
 make -C platform/3ds                        # the .3dsx in build-3ds/
-make -C platform/3ds deploy-azahar          # copy it to the Azahar emulator's SD card
+make -C platform/3ds cia                    # the CIA in build-3ds/
+make -C platform/3ds deploy-azahar          # copy the .3dsx to the Azahar emulator's SD card
 ```
 
 This needs devkitPro's `3ds-dev` group (`DEVKITPRO` defaults to
 `/opt/devkitpro`), `makerom` and `bannertool` on the PATH for the CIA, clang
 with the MIPS target and `ld.lld` for the patches (`PATCH_CC=`, `LLD=`,
 `LLD_LIBS=` to name other ones) and the decompressed ROM in the repository
-root, as for the desktop build. `RT64_3DS=<path>` builds against an rt64-3ds
+root as `decompressed.us.v10.z64`, as for the desktop build. `codegen`
+downloads the game modes' pinned Thunderstore packages (their code only;
+nothing from them is packaged). `RT64_3DS=<path>` builds against an rt64-3ds
 checkout elsewhere.
 
 On Fedora: `sudo dnf install clang lld cmake ninja-build pacman`, then

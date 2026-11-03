@@ -216,6 +216,12 @@ extern "C" void recomp_get_particle_divisor(uint8_t* rdram, recomp_context* ctx)
     _return<s32>(ctx, 1);
 }
 
+// The HUD goes to the touch screen only on the 3DS
+// (patches/hud_screen_patches.c, its HUD row).
+extern "C" void recomp_get_hud_on_bottom(uint8_t* rdram, recomp_context* ctx) {
+    _return<s32>(ctx, 0);
+}
+
 extern "C" void recomp_get_right_analog_inputs(uint8_t* rdram, recomp_context* ctx) {
     float* x_out = _arg<0, float*>(rdram, ctx);
     float* y_out = _arg<1, float*>(rdram, ctx);

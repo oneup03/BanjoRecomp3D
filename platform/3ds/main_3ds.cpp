@@ -168,6 +168,9 @@ const MenuDefault kDefaults[] = {
     { "frame_cap", 2 },
     // A quarter of the particles on an Old 3DS (the row above).
     { "particles", 2, MenuDefault::Old3dsOnly },
+    // The HUD on the top screen, the Game page's HUD row moving it (owner's
+    // choice for Banjo).
+    { "hud_on_bottom", 0 },
 };
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
@@ -324,7 +327,20 @@ int main(int argc, char** argv) {
     // The jiggy transition and the picture puzzles render the world into an
     // image of their own and sample it; the pause copies the screen.
     desc.render.render_to_texture = true;
+    // RT64's "Fix LR with Scissor", on by default on the desktop: the
+    // full-screen tints (gcbound_draw: underwater, fades) stop a pixel short,
+    // at gFramebufferWidth - 1, and only a rectangle reaching the frame's
+    // edge is stretched across the wide screen.
+    desc.render.fix_rect_lr = true;
     desc.render.hud_k_persp = 1.5455f;     // the desktop's perspective HUD shift for Banjo
+    // The counters on the touch screen (patches/hud_screen_patches.c marks
+    // them; the timers stay on top), the Game page's HUD row choosing.
+    desc.render.hud_on_bottom_supported = true;
+    // Its touch buttons there: the right half (x 168..319, y 64..191), below
+    // the honeycombs, the counters moved to the left (hud_screen_shift).
+    desc.touch_area_hud = { 21, 8, 19, 16 };
+    // No aiming reticle for the renderer to place: no Crosshair row.
+    desc.render.crosshair_row = false;
     // The original game's level of detail (gSPBranchLessZ), not the desktop's
     // always-near models: the far ones save the console work. The patches
     // keep the original culling and model LOD too (BK_3DS).

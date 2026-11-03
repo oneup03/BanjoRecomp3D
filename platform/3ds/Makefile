@@ -68,13 +68,15 @@ GPR32_STUBS := "func_80253010", "func_80253034", "func_8025C29C",
 # woken higher-priority game thread (the audio thread) runs at once, as the
 # N64's interrupts had it (the patches' copy too, patches-recomp: a patched
 # function otherwise has no preemption check, and the sampling profile books
-# its time to its nearest traced caller). The desktop configs are left as
-# they are.
+# its time to its nearest traced caller). Both leave it out of simple leaf
+# functions (trace_skip_simple_leaves, rt64-3ds's N64Recomp patch: no call,
+# no loop, no jump table), which finish in a few instructions: the check
+# would be much of their code. The desktop configs are left as they are.
 codegen:
 	cd $(ROOT) && { [ -e $(DECOMP_ROM) ] || ln -s decompressed.us.v10.z64 $(DECOMP_ROM); }
 	$(MAKE) patches-elf code-mods game-modes
 	$(MAKE) mods
-	cd $(ROOT) && sed -e '/^stubs = \[/a\    $(GPR32_STUBS)' -e 's/^# trace_mode = true/trace_mode = true/' banjo.us.rev0.toml | cat - $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
+	cd $(ROOT) && sed -e '/^stubs = \[/a\    $(GPR32_STUBS)' -e 's/^# trace_mode = true/trace_mode = true\ntrace_skip_simple_leaves = true/' banjo.us.rev0.toml | cat - $(MODS_OUT)/game_hooks.toml > banjo.us.rev0.3ds.toml && $(HOST)/N64Recomp banjo.us.rev0.3ds.toml
 	cd $(ROOT) && $(HOST)/RSPRecomp n_aspMain.us.rev0.toml
 	$(MAKE) patches-recomp
 
@@ -83,7 +85,7 @@ codegen:
 patches: patches-elf mods patches-recomp
 
 patches-elf:
-	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) PLATFORM_CPPFLAGS=-DBK_3DS
+	cd $(ROOT)/patches && $(MAKE) clean && $(if $(LLD_LIBS),LD_LIBRARY_PATH=$(LLD_LIBS)) $(MAKE) CC=$(PATCH_CC) LD=$(LLD) PLATFORM_CPPFLAGS="-DBK_3DS -I$(RT64_3DS)/include"
 
 # The code mods of mods.list, from their submodules (mods/; fetch them with
 # git submodule update --init --checkout platform/3ds/mods).
@@ -99,7 +101,7 @@ mods:
 	$(HOST)/mod_bake bake $(ROOT)/BanjoRecompSyms/bk.us.rev0.syms.toml $(ROOT)/patches/patches.elf $(MODS_OUT) $(BAKE_MODS)
 
 patches-recomp:
-	cd $(ROOT) && sed -e '/^\[input\]/a\trace_mode = true' patches.toml | cat - $(MODS_OUT)/patch_hooks.toml > patches.3ds.toml && $(HOST)/N64Recomp patches.3ds.toml
+	cd $(ROOT) && sed -e '/^\[input\]/a\trace_mode = true' -e '/^\[input\]/a\trace_skip_simple_leaves = true' patches.toml | cat - $(MODS_OUT)/patch_hooks.toml > patches.3ds.toml && $(HOST)/N64Recomp patches.3ds.toml
 	$(HOST)/file_to_c $(ROOT)/patches/patches.bin bk_patches_bin $(ROOT)/RecompiledPatches/patches_bin.c $(ROOT)/RecompiledPatches/patches_bin.h
 	@grep -m1 -E '^ *0x[0-9a-f]+ +0x[0-9a-f]+ +[0-9a-f]+ +[0-9]+ +\.bss' $(ROOT)/patches/patches.map | \
 	    awk '{ printf "patch .bss: 0x%s + 0x%s bytes\n", $$1, $$3 }' || true

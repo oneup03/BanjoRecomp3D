@@ -54,3 +54,4 @@ recomp_get_analog_cam_sensitivity = 0x8F0000C4;
 recomp_run_ui_callbacks = 0x8F0000C8;
 recomp_get_jinjo_saving_enabled = 0x8F0000CC;
 recomp_get_particle_divisor = 0x8F0000D4;
+recomp_get_hud_on_bottom = 0x8F0000D8;

@@ -3,6 +3,11 @@
 #include "functions.h"
 #include "../src/core2/gc/zoombox.h"
 
+#ifdef BK_3DS
+#include "patch_helpers.h"
+DECLARE_FUNC(s32, recomp_get_hud_on_bottom);
+#endif
+
 #define AIRSCORE_COUNT (6)
 
 extern u8 D_80381E58[5];
@@ -382,6 +387,12 @@ RECOMP_PATCH void fxairscore_draw(enum item_e item_id, struct8s *arg1, Gfx **gfx
     s32 v_y;
 
     if (s_sprite != 0) {
+#ifdef BK_3DS
+        // @recomp On the 3DS's touch screen the pieces run across, right of
+        // the honeycombs (hud_screen_patches.c moves them there): the left
+        // edge, where they stand on the N64, has the notes' column.
+        bool across = recomp_get_hud_on_bottom();
+#endif
         gSPDisplayList((*gfx)++, s_fxairscore_context);
         func_80347FC0(gfx, s_sprite, 0, 0, 0, 0, 0, 2, 2, &texture_width, &texture_height);
 
@@ -416,6 +427,15 @@ RECOMP_PATCH void fxairscore_draw(enum item_e item_id, struct8s *arg1, Gfx **gfx
 
             //stagger x position
             x = (i_part & 1) ? x + 5.0f : x - 5.0f;
+#ifdef BK_3DS
+            if (across) {
+                // The last piece left leftmost, sliding down from above
+                // rather than in from the left, staggered up and down.
+                x = (38.0f + (5 - i_part) * 15.5f) - ((f32)gFramebufferWidth / 2);
+                y = ((f32)gFramebufferHeight / 2) - (24.0f + (func_802FB0E4(arg1) - 78.0f) + D_80381F68[var_s6]);
+                y = (i_part & 1) ? y + 5.0f : y - 5.0f;
+            }
+#endif
             gSPVertex((*gfx)++, *vtx, 4, 0);
             for (v_y = 0; v_y < 2; v_y++) {
                 for (v_x = 0; v_x < 2; v_x++) {
