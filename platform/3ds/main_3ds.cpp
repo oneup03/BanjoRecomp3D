@@ -168,9 +168,6 @@ const MenuDefault kDefaults[] = {
     { "frame_cap", 2 },
     // A quarter of the particles on an Old 3DS (the row above).
     { "particles", 2, MenuDefault::Old3dsOnly },
-    // The HUD on the top screen, the Game page's HUD row moving it (owner's
-    // choice for Banjo).
-    { "hud_on_bottom", 0 },
 };
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
@@ -214,6 +211,11 @@ constexpr uint32_t PROJECTION_PORTRAIT_LAST = 0x11FF;
 
 using rt64_3ds::ProjKind;
 using rt64_3ds::StereoClass;
+// The touch-screen HUD's background (RenderDesc::hud_bottom_background):
+// a darkened crop of a jiggy-puzzle image, 320x240 RGB565 (CMakeLists.txt).
+__asm__(".section .rodata\n.balign 4\nbk_hud_background:\n.incbin \"" BK_HUD_BACKGROUND "\"\n.previous\n");
+extern "C" const uint16_t bk_hud_background[320 * 240];
+
 const rt64_3ds::StereoRule bk_stereo_rules[] = {
     { PROJECTION_GAMEPLAY,       PROJECTION_GAMEPLAY,       ProjKind::Perspective, StereoClass::World },
     { PROJECTION_SKYBOX,         PROJECTION_SKYBOX,         ProjKind::Perspective, StereoClass::Infinity },
@@ -336,6 +338,7 @@ int main(int argc, char** argv) {
     // The counters on the touch screen (patches/hud_screen_patches.c marks
     // them; the timers stay on top), the Game page's HUD row choosing.
     desc.render.hud_on_bottom_supported = true;
+    desc.render.hud_bottom_background = bk_hud_background;
     // Its touch buttons there: the right half (x 168..319, y 64..191), below
     // the honeycombs, the counters moved to the left (hud_screen_shift).
     desc.touch_area_hud = { 21, 8, 19, 16 };

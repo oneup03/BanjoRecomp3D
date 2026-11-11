@@ -119,10 +119,11 @@ the desktop, so notes and jinjos you collect stay collected when you leave
 a world or lose a life; Off is the original game's rule. A change to it
 applies the next time you enter or leave a world.
 
-The HUD is on the top screen by default. The Game page's HUD row can put
-its counters on the touch screen instead, leaving the top screen to the
-game. On the touch screen the pause screen's counters (honeycombs, notes,
-eggs, feathers, jiggies, Mumbo tokens, jinjos, lives) stay up through play
+The HUD's counters are on the touch screen by default, over a gold
+jiggy-puzzle background, leaving the top screen to the game; the Game
+page's HUD row puts them back on the top screen. On the touch screen the
+pause screen's counters (honeycombs, notes, eggs, feathers, jiggies, Mumbo
+tokens, jinjos, lives) stay up through play
 instead of sliding away after a few seconds; a jiggy or token collected
 counts up those totals rather than showing a second counter. Only what
 counts in the area shows: the jinjos in the nine worlds, the notes
@@ -139,7 +140,7 @@ Holding SELECT for a second saves a screenshot to
 `sdmc:/3ds/BanjoRecomp/screenshots/`: both eyes when 3D is on, and the touch
 screen, as BMPs.
 
-HOME pauses the game and asks on the touch screen whether to quit: A quits,
+HOME pauses the game and asks on the touch screen whether to quit: X quits,
 B goes back to the game. The HOME Menu itself isn't offered while the game
 runs.
 

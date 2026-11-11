@@ -106,6 +106,14 @@ patches-recomp:
 	@grep -m1 -E '^ *0x[0-9a-f]+ +0x[0-9a-f]+ +[0-9a-f]+ +[0-9]+ +\.bss' $(ROOT)/patches/patches.map | \
 	    awk '{ printf "patch .bss: 0x%s + 0x%s bytes\n", $$1, $$3 }' || true
 
+# The touch-screen HUD's background, from hud_background.png (320x240) to
+# the raw little-endian RGB565 the build embeds. Both are kept in git; run
+# this after changing the PNG (needs ImageMagick).
+hud-background:
+	magick $(CURDIR)/hud_background.png -depth 8 rgb:- | python3 -c "import sys, struct; d = sys.stdin.buffer.read(); assert len(d) == 320 * 240 * 3; \
+	    sys.stdout.buffer.write(b''.join(struct.pack('<H', ((d[i] >> 3) << 11) | ((d[i + 1] >> 2) << 5) | (d[i + 2] >> 3)) for i in range(0, len(d), 3)))" \
+	    > $(CURDIR)/hud_background.rgb565
+
 configure:
 	cmake -S . -B $(BUILD) -G Ninja -DCMAKE_BUILD_TYPE=Release \
 	    -DCMAKE_TOOLCHAIN_FILE=$(RT64_3DS)/cmake/devkitARM-3ds.cmake -DRT64_3DS_DIR=$(RT64_3DS)
@@ -134,4 +142,4 @@ hw: build
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all nmr-patch host-tools codegen patches patches-elf code-mods game-modes mods patches-recomp configure build cia deploy-azahar run-azahar hw clean
+.PHONY: all nmr-patch host-tools hud-background codegen patches patches-elf code-mods game-modes mods patches-recomp configure build cia deploy-azahar run-azahar hw clean

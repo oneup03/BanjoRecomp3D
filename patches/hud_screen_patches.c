@@ -39,7 +39,6 @@ extern s32 getGameMode(void);
 extern s32 level_get(void);
 enum map_e map_get(void);
 extern f32 func_802FBE60(struct8s *this);
-extern s32 gTotalHealth;
 
 typedef struct {
     void (*update)(void);
@@ -84,9 +83,20 @@ static void hud_screen_shift(s32 item, s32 *dx, s32 *dy) {
             *dx = -203;
             *dy = 40;
             return;
-        case 4:     // the jiggy and Mumbo token totals: a second column
-            *dx = -122;
-            *dy = -88;
+        case 4:
+            // The jiggy and Mumbo token totals: a second column, on the
+            // notes' and eggs' rows (y 77 and 110), the icons centred at x 112
+            // (clear of a three-digit note count) and the numbers from x 138.
+            // The game has the token 19 px right of the jiggy and lower than
+            // the left column's pitch, so each moves on its own.
+            if (item == ITEM_25_MUMBO_TOKEN_TOTAL) {
+                *dx = -125;
+                *dy = -95;
+            }
+            else {
+                *dx = -106;
+                *dy = -91;
+            }
             return;
         case 2:     // this level's oranges, presents, acorns...: under the totals
             *dx = -122;
@@ -114,12 +124,16 @@ static void hud_screen_shift(s32 item, s32 *dx, s32 *dy) {
     }
     switch (item) {
         case ITEM_14_HEALTH:
-            // The honeycombs (13 px apart from x 96) about the screen's middle.
-            *dx = 50 - 13 * (gTotalHealth - 1) / 2;
+            // The honeycombs (13 px apart) from x 92, right of the lives:
+            // the full 8 end at x 191, short of the air.
+            *dx = -12;
             break;
         case ITEM_17_AIR:
-            // Across, right of the honeycombs (fxairscore_draw lays it out so).
-            *dx = 176;
+            // Across, right of the honeycombs (fxairscore_draw lays it out
+            // so), x 200 to 297, and 6 px down: centred on the honeycombs'
+            // row (y 25 to 54; the game's air row sat at 20 to 47).
+            *dx = 156;
+            *dy = 6;
             break;
         case ITEM_13_EMPTY_HONEYCOMB:
             // Into the bottom right corner, under the touch buttons' usual rows.

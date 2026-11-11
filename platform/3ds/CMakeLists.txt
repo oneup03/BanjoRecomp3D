@@ -95,6 +95,11 @@ target_include_directories(BanjoRecompiled3DS PRIVATE
     "${BK_ROOT}/lib/SlotMap" "${BK_ROOT}/RecompiledFuncs" "${BK_ROOT}/RecompiledPatches"
     "${RT64_3DS_NMR_DIR}/N64Recomp/include" "${RT64_3DS_NMR_DIR}/thirdparty" "${RT64_3DS_NMR_DIR}/thirdparty/miniz")
 target_compile_options(BanjoRecompiled3DS PRIVATE -O2 -Wno-unused-parameter)
+# The touch-screen HUD's background (hud_background.png converted: the
+# Makefile's hud-background), built into main_3ds.cpp.
+set(BK_HUD_BACKGROUND "${CMAKE_CURRENT_LIST_DIR}/hud_background.rgb565")
+target_compile_definitions(BanjoRecompiled3DS PRIVATE BK_HUD_BACKGROUND="${BK_HUD_BACKGROUND}")
+set_source_files_properties(main_3ds.cpp PROPERTIES OBJECT_DEPENDS "${BK_HUD_BACKGROUND}")
 # The audio microcode runs scalar on the ARM11 and is the hottest file.
 set_source_files_properties("${BK_ROOT}/rsp/n_aspMain.cpp" PROPERTIES COMPILE_OPTIONS "-O3;-fno-strict-aliasing")
 target_link_libraries(BanjoRecompiled3DS PRIVATE
