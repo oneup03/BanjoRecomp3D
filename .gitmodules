@@ -48,3 +48,7 @@
 	path = platform/3ds/mods/BK-german
 	url = https://github.com/V10lator/BK-german.git
 	update = none
+[submodule "platform/3ds/mods/Bardakoff-French"]
+	path = platform/3ds/mods/Bardakoff-French
+	url = https://github.com/Lorsoen/Bardakoff-French.git
+	update = none

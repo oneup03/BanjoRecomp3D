@@ -1,5 +1,11 @@
 # Changelog
 
+## November 12, 2026
+
+### New
+
+- French translation, picked with the Language setting on the Mods page: the PAL release's French text (Bardakoff French by Lorsoen), accents included.
+
 ## November 11, 2026
 
 ### New

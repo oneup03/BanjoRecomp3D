@@ -1,0 +1,264 @@
+diff -ruN a/mod.toml b/mod.toml
+--- a/mod.toml
++++ b/mod.toml
+@@ -7,7 +7,7 @@
+ authors = [ "Lorsoen" ]
+ game_id = "bk"
+ minimum_recomp_version = "1.0.1"
+-dependencies = [ "bk_recomp_asset_expansion_pak:0.0.3", "font_plus_latin_1:1.0.0" ]
++dependencies = [ "bk_recomp_asset_expansion_pak:0.0.3" ]
+ native_libraries = []
+ 
+ [inputs]
+diff -ruN a/src/accents_3ds.c b/src/accents_3ds.c
+--- a/src/accents_3ds.c
++++ b/src/accents_3ds.c
+@@ -0,0 +1,248 @@
++// Nintendo 3DS build (BanjoRecomp3D, platform/3ds/mods/Bardakoff-French.3ds.patch):
++// the accented capitals without the Font Plus Latin 1 mod this mod was
++// written for (a text renderer of its own, with no source to build from, that
++// loses the big font and the text effects).
++//
++// The text keeps its Latin-1 bytes (É is 0xC9). The dialog font draws only
++// '!'..'^', so as each string goes to the print buffer its accented letters
++// become font slots the French text never uses, and those slots get the
++// letters: the plain letter's glyph with its mark drawn above it (below for
++// the cedilla). The bold font has no such letters: there the slots draw the
++// plain letter. Other Latin-1 letters print as their plain letter.
++#include "modding.h"
++#include "functions.h"
++#include "variables.h"
++#include "recomputils.h"
++#include "structs.h"
++
++typedef struct { void *unk0; void *unk4; } FontLetter;
++extern FontLetter *print_sFonts[4];
++extern s8 D_80380F20[0x80];
++
++enum { MARK_ACUTE, MARK_GRAVE, MARK_CIRCUMFLEX, MARK_CEDILLA };
++
++typedef struct { u8 latin1; u8 slot; u8 base; u8 mark; } Accent;
++
++// Those of the French text, in slots its strings never use (# $ & * + [ \ ]
++// < >).
++static const Accent kAccents[] = {
++    { 0xC9, '#',  'E', MARK_ACUTE },        // É
++    { 0xC8, '$',  'E', MARK_GRAVE },        // È
++    { 0xCA, '&',  'E', MARK_CIRCUMFLEX },   // Ê
++    { 0xC0, '*',  'A', MARK_GRAVE },        // À
++    { 0xC2, '+',  'A', MARK_CIRCUMFLEX },   // Â
++    { 0xC7, '[',  'C', MARK_CEDILLA },      // Ç
++    { 0xD4, '\\', 'O', MARK_CIRCUMFLEX },   // Ô
++    { 0xCE, ']',  'I', MARK_CIRCUMFLEX },   // Î
++    { 0xDB, '<',  'U', MARK_CIRCUMFLEX },   // Û
++    { 0xD9, '>',  'U', MARK_GRAVE },        // Ù
++};
++#define ACCENT_COUNT ((s32)(sizeof(kAccents) / sizeof(kAccents[0])))
++
++// Latin-1 0xC0..0xDD (and 0xE0..0xFC, the same letters in lower case) as the
++// plain letters the font has.
++static const char kLatin1Plain[] = "AAAAAAACEEEEIIIIDNOOOOOXOUUUUY";
++
++// What each of 0xC0..0xFC prints as.
++static u8 latin1_print[0xFD - 0xC0];
++static s32 latin1_ready = 0;
++
++static void latin1_init(void) {
++    s32 i;
++    for (i = 0; i < 0xFD - 0xC0; i++) {
++        s32 k = i < 0x1E ? i : i - 0x20;
++        latin1_print[i] = (k >= 0 && k < 0x1E) ? (u8)kLatin1Plain[k] : (u8)'?';
++    }
++    for (i = 0; i < ACCENT_COUNT; i++) {
++        latin1_print[kAccents[i].latin1 - 0xC0] = kAccents[i].slot;
++        latin1_print[kAccents[i].latin1 + 0x20 - 0xC0] = kAccents[i].slot;
++    }
++    latin1_ready = 1;
++}
++
++static u8 *glyph_bufs[ACCENT_COUNT];
++static s32 glyph_buf_sizes[ACCENT_COUNT];
++
++// A glyph's buffer, allocated once (again only if it must grow): the hook
++// below runs each time the game sets its fonts up.
++static u8 *glyph_buffer(s32 i, s32 size) {
++    if (glyph_bufs[i] != NULL && glyph_buf_sizes[i] >= size) {
++        return glyph_bufs[i];
++    }
++    if (glyph_bufs[i] != NULL) {
++        recomp_free(glyph_bufs[i]);
++        glyph_bufs[i] = NULL;
++    }
++    glyph_bufs[i] = (u8 *)recomp_alloc((unsigned long)size);
++    glyph_buf_sizes[i] = (glyph_bufs[i] != NULL) ? size : 0;
++    return glyph_bufs[i];
++}
++
++// A CI8 glyph's pixels: after its header, aligned to 8 (as the renderer finds them).
++static u8 *glyph_pixels(BKSpriteTextureBlock *block) {
++    u8 *p = (u8 *)(block + 1);
++    while ((u32)p % 8) {
++        p++;
++    }
++    return p;
++}
++
++static void put(u8 *pixels, s32 w, s32 h, s32 x, s32 y, u8 value) {
++    if (x >= 0 && x < w && y >= 0 && y < h) {
++        pixels[y * w + x] = value;
++    }
++}
++
++// The accented letter from the plain one in slot `base`. The font's capitals
++// fill rows 0..9 of 12 and its lines are about 12 pixels apart, so a mark
++// above takes the two rows just over the letter (the line above's blank rows
++// under its own letters): the glyph gains two rows top and bottom alike (the
++// renderer centres a glyph on the line by its height, so the letter stays
++// where it was), and the letter's top row is cleared to part it from the
++// mark. The cedilla takes the two blank rows under the letter.
++static void make_glyph(s32 i, const Accent *a) {
++    BKSpriteTextureBlock *src = (BKSpriteTextureBlock *)print_sFonts[0][a->base - 0x21].unk0;
++    s32 w = src->w, h = src->h;
++    u8 *sp = glyph_pixels(src);
++    s32 counts[256];
++    s32 x, y, top = h, bottom = -1, left = w, right = -1, best = 0;
++    u8 fg = 1;
++
++    if (w <= 0 || h <= 0 || w > 64 || h > 64) {
++        return;
++    }
++    for (x = 0; x < 256; x++) {
++        counts[x] = 0;
++    }
++    for (y = 0; y < h; y++) {
++        for (x = 0; x < w; x++) {
++            u8 c = sp[y * w + x];
++            if (c != 0) {
++                counts[c]++;
++                if (y < top) top = y;
++                if (y > bottom) bottom = y;
++                if (x < left) left = x;
++                if (x > right) right = x;
++            }
++        }
++    }
++    if (bottom < 0) {
++        return;
++    }
++    for (x = 1; x < 256; x++) {
++        if (counts[x] > best) {
++            best = counts[x];
++            fg = (u8)x;
++        }
++    }
++
++    s32 above = a->mark != MARK_CEDILLA;
++    s32 pad = above ? 2 : 0;
++    if (!above && bottom + 2 > h - 1) {
++        return;
++    }
++    s32 nh = h + 2 * pad;
++    s32 bytes = 8 + w * nh;
++    u8 *buf = glyph_buffer(i, bytes + 16);
++    if (buf == NULL) {
++        return;
++    }
++    // 8-byte aligned pixels right after the header.
++    while ((u32)buf % 8) {
++        buf++;
++    }
++    BKSpriteTextureBlock *dst = (BKSpriteTextureBlock *)buf;
++    dst->x = src->x;
++    dst->y = (s16)(src->y + 2 * pad);
++    dst->w = (s16)w;
++    dst->h = (s16)nh;
++    u8 *dp = buf + 8;
++    for (x = 0; x < w * nh; x++) {
++        dp[x] = 0;
++    }
++    for (y = 0; y < h; y++) {
++        for (x = 0; x < w; x++) {
++            dp[(y + pad) * w + x] = sp[y * w + x];
++        }
++    }
++    if (above) {
++        for (x = 0; x < w; x++) {
++            dp[pad * w + x] = 0;
++        }
++    }
++
++    // The ink's centre, doubled (odd: between two columns).
++    s32 c2 = left + right;
++    s32 m = c2 / 2;
++    s32 up = 0, low = 1;
++    switch (a->mark) {
++        case MARK_ACUTE:
++            put(dp, w, nh, m + 1, up, fg); put(dp, w, nh, m + 2, up, fg);
++            put(dp, w, nh, m, low, fg);    put(dp, w, nh, m + 1, low, fg);
++            break;
++        case MARK_GRAVE:
++            put(dp, w, nh, c2 - (m + 1), up, fg); put(dp, w, nh, c2 - (m + 2), up, fg);
++            put(dp, w, nh, c2 - m, low, fg);      put(dp, w, nh, c2 - (m + 1), low, fg);
++            break;
++        case MARK_CIRCUMFLEX:
++            for (x = left - 1; x <= right + 1; x++) {
++                s32 d = 2 * x - c2;
++                if (d < 0) d = -d;
++                if (d <= 1) put(dp, w, nh, x, up, fg);
++                else if (d <= 4) put(dp, w, nh, x, low, fg);
++            }
++            break;
++        case MARK_CEDILLA:
++            put(dp, w, nh, m, bottom + 1, fg);
++            put(dp, w, nh, m + 1, bottom + 1, fg);
++            put(dp, w, nh, m - 1, bottom + 2, fg); put(dp, w, nh, m, bottom + 2, fg);
++            break;
++    }
++    print_sFonts[0][a->slot - 0x21].unk0 = buf;
++}
++
++RECOMP_HOOK_RETURN("func_802F51B8")
++void bardakoff_3ds_glyphs(void) {
++    s32 i;
++    if (print_sFonts[0] == NULL) {
++        return;
++    }
++    for (i = 0; i < ACCENT_COUNT; i++) {
++        make_glyph(i, &kAccents[i]);
++        // The bold font: the plain letter.
++        D_80380F20[kAccents[i].slot] = D_80380F20[kAccents[i].base];
++    }
++}
++
++// Every string the game prints goes through here: its Latin-1 letters become
++// what the fonts draw. Commands (0xFD and the next byte), icon codes (0xFE,
++// 0xFF and the next) and the icon font's run (0xFD 'j' .. 0xFD 'e') stay.
++RECOMP_HOOK("_printbuffer_push_new")
++void bardakoff_3ds_latin1(s32 x, s32 y, u8 *string) {
++    s32 icons = 0;
++    u8 *p;
++    if (string == NULL) {
++        return;
++    }
++    if (!latin1_ready) {
++        latin1_init();
++    }
++    for (p = string; *p != 0; p++) {
++        u8 c = *p;
++        if (c == 0xFD) {
++            if (p[1] == 0) break;
++            p++;
++            if (*p == 'j') icons = 1;
++            else if (*p == 'e') icons = 0;
++            continue;
++        }
++        if (c == 0xFE || c == 0xFF) {
++            if (p[1] == 0) break;
++            p++;
++            continue;
++        }
++        if (!icons && c >= 0xC0) {
++            *p = latin1_print[c - 0xC0];
++        }
++    }
++}

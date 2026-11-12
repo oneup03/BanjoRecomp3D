@@ -140,7 +140,7 @@ const MenuOption kOptions[] = {
 // The languages and their asset system replace the original game's text,
 // which the game modes rework.
 const char* const kModsNotInGameModes[] = {
-    "ProxyMM_ExitToLair", "bk_spanish_translation", "de_v10lator_ger", "bk_recomp_asset_expansion_pak",
+    "ProxyMM_ExitToLair", "bk_spanish_translation", "de_v10lator_ger", "bardakoff_banjo", "bk_recomp_asset_expansion_pak",
 };
 
 // The translations (mods.list): one at a time, on the Mods page's Language
@@ -148,8 +148,8 @@ const char* const kModsNotInGameModes[] = {
 // game's text assets as the asset cache starts. Each needs the Asset
 // Expansion Pak (bk_recomp_asset_expansion_pak), which the row turns on
 // with it and doesn't list. ASCII names: the menu's console font.
-const char* const kLanguageIds[] = { "bk_spanish_translation", "de_v10lator_ger" };
-const char* const kLanguageNames[] = { "Espanol", "Deutsch" };
+const char* const kLanguageIds[] = { "bk_spanish_translation", "de_v10lator_ger", "bardakoff_banjo" };
+const char* const kLanguageNames[] = { "Espanol", "Deutsch", "Francais" };
 
 // Defaults for the library's rows; settings.ini, once written, keeps what the
 // player chose.

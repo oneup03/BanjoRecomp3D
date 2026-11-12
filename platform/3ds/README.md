@@ -246,15 +246,16 @@ the game itself if you turned it on.
 ### Languages
 
 The Mods page's **Language (at restart)** row plays the game in English (the
-original), Spanish or German. The choice takes effect the next time the game
-starts.
+original), Spanish, German or French. The choice takes effect the next time
+the game starts.
 
 | Language | Mod | Author |
 |---|---|---|
 | Espanol | [Spanish Language](https://github.com/wilrojasdev/BKSpanish) 3.2.0: Latin American Spanish, with dialogue, menus, the quiz and cutscenes. By its author's note the translation was generated with AI and may contain errors, and the worlds' signs aren't translated yet. | wilrojasdev |
 | Deutsch | [German](https://github.com/V10lator/BK-german) 1.3.7 | V10lator |
+| Francais | [Bardakoff French](https://github.com/Lorsoen/Bardakoff-French) 1.0.3: the PAL release's French text. It was written for the Font Plus Latin 1 mod, which draws its accented letters; this build draws them itself instead (`mods/Bardakoff-French.3ds.patch`), so the big font and the text effects work too. In the big font (the pause menu's and Totals' titles) accented letters show without their accents. | Lorsoen |
 
-Both are CC0 and built from source like the other mods. They replace the
+All three are CC0 and built from source like the other mods. They replace the
 game's text through Darío's
 [Asset Expansion Pak](https://github.com/DarioSamo/BKRecompAssetExpansionPak)
 (CC0), which the Language row turns on with them; on the 3DS its asset heap

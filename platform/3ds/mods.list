@@ -15,6 +15,9 @@ BK-Sir-Slush-Configuration
 # system they replace the game's text through, which is on only with one.
 # For the 3DS's memory, mods/BKRecompAssetExpansionPak.3ds.patch sizes its
 # heap and mods/BKSpanish.3ds.patch allocates Spanish's glyphs once.
+# mods/Bardakoff-French.3ds.patch draws French's accented capitals itself, in
+# place of the Font Plus Latin 1 mod it was written for.
 BKRecompAssetExpansionPak
 BKSpanish
 BK-german
+Bardakoff-French
