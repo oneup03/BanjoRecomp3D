@@ -87,6 +87,8 @@ mode. A mode that can't be played is listed in red with the reason: its ROM
 missing, made from another version, or incomplete. Each mode keeps its own
 saves.
 
+The game modes run slower than the base game in some areas.
+
 ## Controls
 
 | 3DS | N64 |
@@ -190,6 +192,10 @@ draw (a jiggy's sparkles were 225 of one frame's 360 draws), which an Old
 3DS can't afford by the hundred. Half divides every burst by two and halves
 the steady emitters' rate; nothing is switched off, since effects end when
 their particles run out.
+
+The HUD on the touch screen costs a little to draw. Setting the Game page's
+**HUD** row to Top screen may run a little better, as the touch screen then
+has nothing to draw.
 
 ## Mods
 
