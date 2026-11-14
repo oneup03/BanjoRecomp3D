@@ -10,13 +10,19 @@ Banjo: Recompiled for the Nintendo 3DS family, with stereoscopic 3D. A New
 Download the latest build from the
 [releases page](https://github.com/oneup03/BanjoRecomp3D/releases/tag/rolling):
 
-- **CIA** (`BanjoRecompiled3D-3ds-<commit>.cia`): install it with FBI or
+- **CIA** (`BanjoRecompiled3D-3ds.cia`): install it with FBI or
   another CIA installer, or scan the QR code below with FBI
-  (Remote Install > Scan QR Code). It appears on the HOME Menu as "Banjo:
+  (Remote Install > Scan QR Code; the code stays the same for each new
+  build). It appears on the HOME Menu as "Banjo:
   Recompiled". On an Old 3DS or 2DS, use the CIA (see Performance).
 - **.3dsx** (`BanjoRecompiled3D-3ds-<commit>.zip`): extract it to the root of
   the SD card and start `3ds/BanjoRecomp/BanjoRecomp.3dsx` from the Homebrew
   Launcher.
+- **.3dsx alone** (`BanjoRecomp.3dsx`): the same program without the zip. Put
+  it in `sdmc:/3ds/BanjoRecomp/` (over the zip's copy, to update) or in
+  `sdmc:/3ds/`: either way the game keeps its ROM, settings and saves in
+  `sdmc:/3ds/BanjoRecomp/`. Keep only one copy, or the Homebrew Launcher lists
+  the game twice.
 
 ![QR code for FBI: the latest CIA](https://github.com/oneup03/BanjoRecomp3D/releases/download/rolling/BanjoRecompiled3D-3ds-QR.png)
 

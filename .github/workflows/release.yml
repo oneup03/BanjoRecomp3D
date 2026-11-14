@@ -511,7 +511,15 @@ jobs:
           cp lib/rt64-3ds/third_party/OpenDSP/LICENSE "$out/OpenDSP-LICENSE.txt"
           cp lib/rt64-3ds/tools/make_game_mod_rom.py package/
           (cd package && zip -q -r "../BanjoRecompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.zip" 3ds make_game_mod_rom.py)
-          cp build-3ds/BanjoRecompiled3DS.cia "BanjoRecompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia"
+          # The CIA, and the .3dsx on its own as well, under names that never
+          # change, so their links always give the latest build: Universal
+          # Updater downloads the link Universal-DB last read, which a name
+          # with the commit in it would break at each push. The .3dsx has the
+          # game's folder's name: Universal Updater saves it under that name
+          # in sdmc:/3ds/, or with its "Put 3DSX files in folder" setting in
+          # sdmc:/3ds/BanjoRecomp/, as the zip has it.
+          cp build-3ds/BanjoRecompiled3DS.cia BanjoRecompiled3D-3ds.cia
+          cp build-3ds/BanjoRecompiled3DS.3dsx BanjoRecomp.3dsx
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
@@ -519,7 +527,8 @@ jobs:
           name: release-3ds
           path: |
             BanjoRecompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.zip
-            BanjoRecompiled3D-3ds-${{ needs.recomp.outputs.sha_short }}.cia
+            BanjoRecompiled3D-3ds.cia
+            BanjoRecomp.3dsx
           if-no-files-found: error
 
   publish:
@@ -535,14 +544,13 @@ jobs:
           merge-multiple: true
 
       # A QR code of the 3DS CIA's download link, for FBI's "Remote Install >
-      # Scan QR Code": shown in the release notes and kept as an asset. This
-      # job doesn't need recomp, so the CIA is found by its name's pattern.
+      # Scan QR Code": shown in the release notes and kept as an asset. The
+      # CIA's name never changes, so neither does the code.
       - name: Make the 3DS CIA's QR code
         run: |
           sudo apt-get install -y --no-install-recommends qrencode
-          cia=$(cd dist && ls ./*-3ds-*.cia | head -1)
-          cia=${cia#./}
-          if [ -z "$cia" ]; then echo "no 3DS CIA in dist/" >&2; exit 1; fi
+          cia=BanjoRecompiled3D-3ds.cia
+          test -f "dist/$cia"
           qrencode -o dist/BanjoRecompiled3D-3ds-QR.png -s 8 -m 2 \
             "https://github.com/$GITHUB_REPOSITORY/releases/download/rolling/$cia"
 
@@ -558,6 +566,8 @@ jobs:
             echo "Scan with FBI (Remote Install > Scan QR Code) to install the CIA:"
             echo
             echo "![QR code for the 3DS CIA](https://github.com/$GITHUB_REPOSITORY/releases/download/rolling/BanjoRecompiled3D-3ds-QR.png)"
+            echo
+            echo 'For the Homebrew Launcher: the zip, or BanjoRecomp.3dsx alone (in sdmc:/3ds/BanjoRecomp/ or sdmc:/3ds/). The README has the details.'
           } > notes.md
           gh release delete rolling --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
           gh release create rolling dist/* \

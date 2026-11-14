@@ -5,6 +5,8 @@
 ### New
 
 - French translation, picked with the Language setting on the Mods page: the PAL release's French text (Bardakoff French by Lorsoen), accents included.
+- The release also has the .3dsx on its own, `BanjoRecomp.3dsx`, so the Homebrew Launcher version updates without the zip: put it in `sdmc:/3ds/BanjoRecomp/` over the old one.
+- The CIA keeps one name from build to build, `BanjoRecompiled3D-3ds.cia`, so its download link and QR code no longer change.
 
 ## November 11, 2026
 
