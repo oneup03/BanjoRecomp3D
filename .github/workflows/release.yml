@@ -304,17 +304,30 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flatpak-builder lld
 
+      # The SDK is pinned to the 25.08 build of 2026-10-21. Flathub's update of
+      # 2026-11-16 (CMake 4.5, libstdc++ 15.3) breaks every CMake configure
+      # here: CMake reads the module list libstdc++ ships, whose path to std.cc
+      # lacks its /usr prefix, and fails in N64Recomp's fmt flag checks
+      # ("Cannot find source file: /include/c++/15.3.0/bits/std.cc"). Drop
+      # SDK_COMMIT once a newer SDK configures again. Everything the manifest
+      # needs is installed here, and flatpak-builder is not asked to install
+      # dependencies, so it can't update the SDK past the pin.
       - name: Prepare Flatpak runtime/SDK
+        env:
+          SDK_COMMIT: 3912bfb67e8fbda84403f805028df718c7f12216fe5cafb8b54b8bb0d57ad955
         run: |
           flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y flathub org.freedesktop.Platform//${FREEDESKTOP_VERSION}
           flatpak --user install -y flathub org.freedesktop.Sdk//${FREEDESKTOP_VERSION}
+          flatpak --user update -y --commit=${SDK_COMMIT} org.freedesktop.Sdk//${FREEDESKTOP_VERSION}
           flatpak --user install -y flathub org.freedesktop.Sdk.Extension.llvm${LLVM_VERSION}//${FREEDESKTOP_VERSION}
+          flatpak --user info org.freedesktop.Sdk//${FREEDESKTOP_VERSION} | grep -i commit
 
       - name: Build Flatpak bundle
         run: |
           git config --global protocol.file.allow always
           make -C patches CC=clang LD=ld.lld
-          flatpak-builder --user --force-clean --install-deps-from=flathub --repo=repo builddir ./flatpak/${FLATPAK_ID}.json
+          flatpak-builder --user --force-clean --repo=repo builddir ./flatpak/${FLATPAK_ID}.json
           flatpak build-bundle repo "BanjoRecompiled3D-flatpak-${{ needs.recomp.outputs.sha_short }}.flatpak" ${FLATPAK_ID} --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
 
       - name: Upload release artifact
